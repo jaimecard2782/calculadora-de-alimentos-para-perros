@@ -3,1245 +3,652 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pet Comilón - Calculadora de Porciones y Alimentación Natural</title>
+  <title>PetComilón - Calculadora de Porciones e Indicadores</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#fffbeb',
-              100: '#fef3c7',
-              500: '#f59e0b',
-              600: '#d97706',
-              700: '#b45309',
-              800: '#78350f',
-            },
-            petgreen: {
-              50: '#f0fdf4',
-              100: '#dcfce7',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-            },
-            petyellow: {
-              50: '#fefce8',
-              100: '#fef9c3',
-              500: '#eab308',
-              600: '#ca8a04',
-            },
-            petred: {
-              50: '#fef2f2',
-              100: '#fee2e2',
-              500: '#ef4444',
-              600: '#dc2626',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
-    .tab-active { border-bottom: 3px solid #d97706; color: #b45309; font-weight: 700; }
-    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-    /* Custom scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-  </style>
+  <!-- React & React DOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel CDN para transpilar JSX en vivo -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 antialiased font-sans p-2 sm:p-4 md:p-6">
+  <div id="root"></div>
 
-  <!-- Navigation Header -->
-  <header class="bg-white border-b border-amber-100 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('calc')">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-amber-200">
-            <i class="fa-solid fa-dog text-xl"></i>
-          </div>
-          <div>
-            <span class="font-extrabold text-xl text-slate-900 tracking-tight">Pet<span class="text-amber-600">Comilón</span></span>
-            <span class="block text-xs font-semibold text-amber-700 -mt-1">Calculadora de Porciones</span>
-          </div>
-        </div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
 
-        <!-- Navigation Tabs Desktop -->
-        <nav class="hidden md:flex space-x-1 lg:space-x-4">
-          <button onclick="switchTab('calc')" id="tab-calc" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition flex items-center gap-2 tab-active">
-            <i class="fa-solid fa-calculator"></i> Calculadora
-          </button>
-          <button onclick="switchTab('recipes')" id="tab-recipes" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition flex items-center gap-2">
-            <i class="fa-solid fa-utensils"></i> Recetario (100)
-          </button>
-          <button onclick="switchTab('semaforo')" id="tab-semaforo" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition flex items-center gap-2">
-            <i class="fa-solid fa-traffic-light"></i> Lista Semáforo
-          </button>
-          <button onclick="switchTab('guide')" id="tab-guide" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition flex items-center gap-2">
-            <i class="fa-solid fa-calendar-check"></i> Transición
-          </button>
-          <button onclick="switchTab('ai')" id="tab-ai" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-amber-600 transition flex items-center gap-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 border border-amber-200">
-            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> NutriPet IA
-          </button>
-        </nav>
+    // --- DATOS DEL SEMÁFORO DE ALIMENTOS ---
+    const SEMAFORO_DATA = [
+      // Verde
+      { nombre: 'Pollo cocido', categoria: 'Proteína', tipo: 'verde', desc: 'Proteína sencilla y versátil. Preparar sin sal, ajo ni cebolla.', prep: 'Retira la piel y huesos cocidos. Hervir o cocinar al vapor.' },
+      { nombre: 'Carne magra de res', categoria: 'Proteína', tipo: 'verde', desc: 'Excelente fuente de proteína limpia e hierro.', prep: 'Cocinar en agua sin aceites ni condimentos.' },
+      { nombre: 'Pescado blanco', categoria: 'Proteína', tipo: 'verde', desc: 'Fácil digestión y bajo en grasa. Aporta aminoácidos clave.', prep: 'Cocinar bien y desmenuzar revisando ausencia total de espinas.' },
+      { nombre: 'Huevo cocido', categoria: 'Proteína / Comp.', tipo: 'verde', desc: 'Proteína completa y muy nutritiva.', prep: 'Hervir hasta que esté firme y picar en trozos adecuados.' },
+      { nombre: 'Zanahoria', categoria: 'Vegetal', tipo: 'verde', desc: 'Aporta fibra soluble y betacarotenos.', prep: 'Lavar, pelar y cocinar o rallar fina.' },
+      { nombre: 'Calabaza / Ahuyama', categoria: 'Vegetal', tipo: 'verde', desc: 'Excelente para la digestión, aporta hidratación.', prep: 'Cocinar al vapor y servir en puré o trozos.' },
+      { nombre: 'Calabacín', categoria: 'Vegetal', tipo: 'verde', desc: 'Ligero y lleno de vitaminas A y C.', prep: 'Cocinar al vapor cortado en cubos.' },
+      { nombre: 'Chayote / Guatila', categoria: 'Vegetal', tipo: 'verde', desc: 'Muy suave, ligero e hidratante.', prep: 'Pelar, retirar semilla central y hervir.' },
+      { nombre: 'Arroz blanco cocido', categoria: 'Carbohidrato', tipo: 'verde', desc: 'Fuente energética de fácil digestión para estómagos sensibles.', prep: 'Cocinar únicamente con agua, bien suave.' },
+      { nombre: 'Batata / Camote', categoria: 'Carbohidrato', tipo: 'verde', desc: 'Carbohidrato de asimilación lenta y fibra.', prep: 'Pelar y hervir muy bien antes de servir.' },
+      { nombre: 'Sardina en agua', categoria: 'Complemento', tipo: 'verde', desc: 'Fuente rica en Omega-3 y grasas saludables.', prep: 'Sin sal ni aceites añadidos. Retirar espinas grandes.' },
+      { nombre: 'Manzana sin semillas', categoria: 'Fruta / Premio', tipo: 'verde', desc: 'Premio crujiente y refrescante con fibra.', prep: 'Retirar siempre el corazón y TODAS las semillas.' },
 
-        <!-- Mobile Menu Button -->
-        <div class="md:hidden flex items-center">
-          <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-            <i class="fa-solid fa-bars text-xl"></i>
-          </button>
-        </div>
-      </div>
-    </div>
+      // Amarillo (Cuidado / Moderación)
+      { nombre: 'Hígado de res / Pollo', categoria: 'Víscera', tipo: 'amarillo', desc: 'Súper rico en vitamina A e hierro, pero el exceso causa toxicidad.', prep: 'Máximo 5% de la dieta. Cocinar brevemente.' },
+      { nombre: 'Yogur natural sin azúcar', categoria: 'Lácteo / Probiótico', tipo: 'amarillo', desc: 'Aporta probióticos, pero la lactosa puede causar diarrea.', prep: 'Ofrecer solo 1 cucharada de forma ocasional si tolera lácteos.' },
+      { nombre: 'Brócoli y Coliflor', categoria: 'Vegetal', tipo: 'amarillo', desc: 'Muy nutritivos, pero consumidos en exceso generan gases.', prep: 'Cocinar muy bien al vapor y dar en porciones pequeñas.' },
+      { nombre: 'Crema de maní 100%', categoria: 'Premio', tipo: 'amarillo', desc: 'Muy calórica. Debe ser 100% maní sin azúcar ni edulcorantes.', prep: 'VERIFICAR que NO contenga Xilitol bajo ninguna circunstancia.' },
+      { nombre: 'Queso bajo en sal', categoria: 'Lácteo', tipo: 'amarillo', desc: 'Útil para esconder medicamentos o premios esporádicos.', prep: 'Porciones minúsculas por su contenido graso.' },
 
-    <!-- Mobile Navigation Drawer -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-4 pt-2 pb-4 space-y-2">
-      <button onclick="switchTab('calc'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-3">
-        <i class="fa-solid fa-calculator text-amber-500"></i> Calculadora de Porciones
-      </button>
-      <button onclick="switchTab('recipes'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-3">
-        <i class="fa-solid fa-utensils text-amber-500"></i> 100 Recetas Cocidas y Crudas
-      </button>
-      <button onclick="switchTab('semaforo'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-3">
-        <i class="fa-solid fa-traffic-light text-amber-500"></i> Lista Semáforo de Alimentos
-      </button>
-      <button onclick="switchTab('guide'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-3">
-        <i class="fa-solid fa-calendar-check text-amber-500"></i> Guía de Transición & Congelado
-      </button>
-      <button onclick="switchTab('ai'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg font-medium text-amber-800 bg-amber-50 flex items-center gap-3">
-        <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i> NutriPet IA Advisor
-      </button>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
-
-    <!-- Active Dog Summary Badge (Floats on top when set) -->
-    <div id="dog-summary-bar" class="hidden mb-6 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">
-          🐶
-        </div>
-        <div>
-          <h3 class="font-bold text-lg leading-tight" id="badge-dog-name">Max</h3>
-          <p class="text-xs text-amber-100" id="badge-dog-details">10 kg • Adulto • Dieta Cocida</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-4 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-        <div class="text-center">
-          <span class="text-xs text-amber-100 block">Porción Diaria</span>
-          <span class="font-extrabold text-xl" id="badge-daily-grams">250g / día</span>
-        </div>
-        <div class="h-8 w-px bg-white/20"></div>
-        <button onclick="switchTab('calc')" class="text-xs bg-white text-amber-700 font-bold px-3 py-2 rounded-lg shadow hover:bg-amber-50 transition">
-          <i class="fa-solid fa-pen-to-square"></i> Editar
-        </button>
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- TAB 1: CALCULADORA DE PORCIONES -->
-    <!-- ========================================== -->
-    <section id="sec-calc" class="space-y-8">
-      <div class="bg-gradient-to-br from-amber-500 to-amber-700 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-        <div class="relative z-10 max-w-2xl">
-          <span class="bg-amber-400/30 text-amber-100 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block">Herramienta Oficial Pet Comilón</span>
-          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Calculadora de Porciones Diarias</h1>
-          <p class="mt-2 text-amber-100 text-sm sm:text-base leading-relaxed">
-            Descubre la cantidad exacta de comida de verdad que necesita tu perro según su peso, edad, nivel de actividad y tipo de dieta.
-          </p>
-        </div>
-        <i class="fa-solid fa-bone text-9xl absolute -right-6 -bottom-6 text-white/10 transform -rotate-12 pointer-events-none"></i>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <!-- Input Form -->
-        <div class="lg:col-span-5 bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-5">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <i class="fa-solid fa-sliders text-amber-500"></i> Datos de tu Mascota
-          </h2>
-
-          <!-- Dog Name -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre de tu perro</label>
-            <input type="text" id="input-name" value="Firulais" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800 font-medium">
-          </div>
-
-          <!-- Weight -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Peso Corporal (kg)</label>
-              <span id="weight-val" class="text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">10.0 kg</span>
-            </div>
-            <input type="range" id="input-weight" min="1" max="60" step="0.5" value="10" oninput="updateWeightDisplay(this.value)" class="w-full accent-amber-500 cursor-pointer">
-            <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-medium">
-              <span>1 kg (Toy)</span>
-              <span>15 kg (Mediano)</span>
-              <span>30 kg (Grande)</span>
-              <span>60 kg+</span>
-            </div>
-          </div>
-
-          <!-- Life Stage -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Etapa de Vida</label>
-            <select id="input-stage" onchange="calculatePortion()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm font-medium text-slate-800 bg-white">
-              <option value="puppy_young">Cachorro (< 4 meses) — Crecimiento rápido</option>
-              <option value="puppy_mid">Cachorro (4-6 meses) — Crecimiento moderado</option>
-              <option value="puppy_late">Cachorro (6-12 meses) — Etapa final</option>
-              <option value="adult" selected>Adulto (1 - 7 años)</option>
-              <option value="senior">Perro Mayor / Senior (> 7 años)</option>
-              <option value="lactating">Gestante / Lactante</option>
-            </select>
-          </div>
-
-          <!-- Activity Level -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nivel de Actividad Diaria</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" onclick="setActivity('low')" id="act-low" class="act-btn px-2 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:border-amber-400 transition text-center">
-                <i class="fa-solid fa-couch block text-sm mb-1 text-slate-400"></i> Bajo / Tranquilo
-              </button>
-              <button type="button" onclick="setActivity('mod')" id="act-mod" class="act-btn px-2 py-2 rounded-xl border-2 border-amber-500 bg-amber-50 text-xs font-semibold text-amber-800 transition text-center">
-                <i class="fa-solid fa-dog block text-sm mb-1 text-amber-600"></i> Normal
-              </button>
-              <button type="button" onclick="setActivity('high')" id="act-high" class="act-btn px-2 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:border-amber-400 transition text-center">
-                <i class="fa-solid fa-bolt block text-sm mb-1 text-slate-400"></i> Alto / Deportivo
-              </button>
-            </div>
-          </div>
-
-          <!-- Goal -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Objetivo Corporal</label>
-            <select id="input-goal" onchange="calculatePortion()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm font-medium text-slate-800 bg-white">
-              <option value="maintain" selected>Mantener peso ideal</option>
-              <option value="loss">Perder peso (Sobrepeso / Control)</option>
-              <option value="gain">Ganar peso / Masa muscular</option>
-            </select>
-          </div>
-
-          <!-- Diet Type -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tipo de Dieta Natural</label>
-            <div class="space-y-2">
-              <label class="flex items-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition">
-                <input type="radio" name="diet-type" value="cooked" checked onchange="calculatePortion()" class="accent-amber-600 w-4 h-4">
-                <div class="ml-3">
-                  <span class="block text-sm font-bold text-slate-800">Comida Cocida</span>
-                  <span class="block text-xs text-slate-500">Hervida o al vapor (Más suave y fácil digestión)</span>
-                </div>
-              </label>
-              <label class="flex items-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition">
-                <input type="radio" name="diet-type" value="raw_nobone" onchange="calculatePortion()" class="accent-amber-600 w-4 h-4">
-                <div class="ml-3">
-                  <span class="block text-sm font-bold text-slate-800">Cruda Sin Hueso</span>
-                  <span class="block text-xs text-slate-500">Carnes magras, vísceras, huevo y vegetales</span>
-                </div>
-              </label>
-              <label class="flex items-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition">
-                <input type="radio" name="diet-type" value="raw_bone" onchange="calculatePortion()" class="accent-amber-600 w-4 h-4">
-                <div class="ml-3">
-                  <span class="block text-sm font-bold text-slate-800">Cruda Con Hueso Carnoso</span>
-                  <span class="block text-xs text-slate-500">Incluye huesos carnosos crudos apropiados</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Meals per Day -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tomas al día</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" onclick="setMeals(1)" id="meal-1" class="meal-btn px-2 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">1 Toma</button>
-              <button type="button" onclick="setMeals(2)" id="meal-2" class="meal-btn px-2 py-2 rounded-xl border-2 border-amber-500 bg-amber-50 text-xs font-semibold text-amber-800">2 Tomas</button>
-              <button type="button" onclick="setMeals(3)" id="meal-3" class="meal-btn px-2 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">3 Tomas</button>
-            </div>
-          </div>
-
-          <button onclick="calculatePortion(); setDogActiveBadge()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl shadow-md shadow-amber-200 transition flex items-center justify-center gap-2 text-sm">
-            <i class="fa-solid fa-calculator"></i> Actualizar Resultados
-          </button>
-        </div>
-
-        <!-- Calculation Results Output -->
-        <div class="lg:col-span-7 space-y-6">
-          
-          <!-- Key Metrics Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm text-center relative overflow-hidden">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Porcentaje Corporal</span>
-              <div class="text-3xl font-extrabold text-amber-600 mt-1" id="res-percent">2.5 %</div>
-              <p class="text-[11px] text-slate-400 mt-1" id="res-percent-desc">del peso de tu perro</p>
-            </div>
-
-            <div class="bg-gradient-to-tr from-amber-500 to-amber-600 p-5 rounded-2xl text-white shadow-md shadow-amber-200 text-center">
-              <span class="text-xs font-bold text-amber-100 uppercase tracking-wider">Porción Total Diaria</span>
-              <div class="text-3xl font-extrabold mt-1" id="res-daily-grams">250 g</div>
-              <p class="text-[11px] text-amber-100 mt-1">gramos por día</p>
-            </div>
-
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm text-center">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Por Toma (<span id="res-meals-count">2</span>)</span>
-              <div class="text-3xl font-extrabold text-slate-800 mt-1" id="res-meal-grams">125 g</div>
-              <p class="text-[11px] text-slate-400 mt-1">por cada plato</p>
-            </div>
-          </div>
-
-          <!-- Food Group Breakdown Card -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-5">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div>
-                <h3 class="font-bold text-slate-900 text-base">Desglose de la Porción Diaria</h3>
-                <p class="text-xs text-slate-500" id="res-diet-label">Basado en Dieta Cocida Equilibrada</p>
-              </div>
-              <span class="text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-full" id="res-total-check">Total: 250g</span>
-            </div>
-
-            <!-- Progress Bar Visualization -->
-            <div id="macro-bar" class="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex">
-              <!-- Dynamically populated bars -->
-            </div>
-
-            <!-- Detailed Breakdown List -->
-            <div class="space-y-3" id="breakdown-list">
-              <!-- Dynamically populated -->
-            </div>
-
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex gap-3 items-start">
-              <i class="fa-solid fa-circle-info text-amber-600 text-base mt-0.5"></i>
-              <div>
-                <p class="font-bold mb-1">Reglas simples de oro de Pet Comilón:</p>
-                <ul class="list-disc list-inside space-y-0.5 text-amber-900/80">
-                  <li>Prepara siempre sin sal, sin cebolla, sin ajo ni condimentos humanos.</li>
-                  <li><strong>Huesos:</strong> Nunca sirvas huesos cocidos. Si usas crudos, que sean huesos carnosos apropiados y bajo supervisión.</li>
-                  <li>Agua fresca y limpia siempre a disposición.</li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-              <button onclick="switchTab('recipes')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition flex items-center gap-2">
-                <i class="fa-solid fa-utensils"></i> Ver Recetas Adaptadas a <span id="res-btn-dog-name">Firulais</span>
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 2: RECETARIO (100 RECETAS PDF) -->
-    <!-- ========================================== -->
-    <section id="sec-recipes" class="hidden space-y-6">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-        <div>
-          <h2 class="text-2xl font-extrabold text-slate-900">Colección de Recetas Pet Comilón</h2>
-          <p class="text-xs text-slate-500 mt-1">Combinaciones nutritivas de tus guías de Comida Cocida y Cruda (Con y Sin Hueso)</p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <!-- Search input -->
-          <div class="relative flex-grow md:flex-grow-0">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
-            <input type="text" id="recipe-search" placeholder="Buscar ingrediente (ej. Pollo, Sardina)..." oninput="filterRecipes()" class="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 w-full sm:w-64">
-          </div>
-          <!-- Filter Diet Type -->
-          <select id="filter-type" onchange="filterRecipes()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 bg-white">
-            <option value="all">Todas las colecciones</option>
-            <option value="cooked">Cocidas (50)</option>
-            <option value="raw_nobone">Crudas Sin Hueso</option>
-            <option value="raw_bone">Crudas Con Hueso</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Active Portion Banner Notice -->
-      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-        <div class="flex items-center gap-3">
-          <i class="fa-solid fa-scale-balanced text-amber-600 text-xl"></i>
-          <span class="text-xs text-amber-900 font-medium">
-            Las porciones mostradas se escalan automáticamente a los <strong id="recipe-dog-portion-label">250g diarios</strong> calculados para tu perro.
-          </span>
-        </div>
-        <button onclick="switchTab('calc')" class="text-xs font-bold text-amber-700 underline hover:text-amber-800">
-          Cambiar peso/porción
-        </button>
-      </div>
-
-      <!-- Recipes Grid -->
-      <div id="recipes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Dynamically generated recipe cards -->
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 3: LISTA SEMÁFORO DE ALIMENTOS -->
-    <!-- ========================================== -->
-    <section id="sec-semaforo" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-traffic-light text-amber-500"></i> Lista Semáforo de Alimentos
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">Guía rápida para decidir qué compartir: beneficios, porciones, preparación y alertas de seguridad.</p>
-          </div>
-          <!-- Filter Category -->
-          <div class="flex items-center gap-2 w-full md:w-auto">
-            <input type="text" id="semaforo-search" placeholder="Buscar alimento (ej. Manzana, Cebolla)..." oninput="filterSemaforo()" class="px-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 w-full sm:w-64">
-          </div>
-        </div>
-
-        <!-- Filter Buttons -->
-        <div class="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-          <button onclick="filterSemaforoCat('all')" id="sem-btn-all" class="sem-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-slate-900 text-white">Todos</button>
-          <button onclick="filterSemaforoCat('verde')" id="sem-btn-verde" class="sem-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
-            <i class="fa-solid fa-circle text-emerald-500 mr-1"></i> PUEDE (Seguros)
-          </button>
-          <button onclick="filterSemaforoCat('amarillo')" id="sem-btn-amarillo" class="sem-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-            <i class="fa-solid fa-triangle-exclamation text-yellow-600 mr-1"></i> CUIDADO (Moderación)
-          </button>
-          <button onclick="filterSemaforoCat('rojo')" id="sem-btn-rojo" class="sem-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800 hover:bg-red-200">
-            <i class="fa-solid fa-ban text-red-500 mr-1"></i> NUNCA (Tóxicos/Peligro)
-          </button>
-        </div>
-      </div>
-
-      <!-- Semaforo Grid Container -->
-      <div id="semaforo-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Dynamically populated semaforo cards -->
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 4: TRANSICIÓN Y CONGELADO -->
-    <!-- ========================================== -->
-    <section id="sec-guide" class="hidden space-y-8">
-      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
-        <div class="border-b border-slate-100 pb-4">
-          <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full uppercase tracking-wider">Plan de Adaptación Gradual</span>
-          <h2 class="text-2xl font-extrabold text-slate-900 mt-2">Guía de Transición en 7 - 10 Días</h2>
-          <p class="text-xs text-slate-500 mt-1">Nunca cambies la alimentación de golpe. Sigue este esquema para proteger la digestión de tu perro.</p>
-        </div>
-
-        <!-- Interactive Transition Checklist Timeline -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl relative">
-            <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2.5 py-1 rounded-md">Días 1 y 2</span>
-            <div class="mt-3 font-extrabold text-slate-800 text-lg">75% Habitual + 25% Natural</div>
-            <p class="text-xs text-slate-600 mt-2">Introduce un solo ingrediente simple (ej. Pollo cocido sin condimento o calabaza).</p>
-            <div class="mt-4 pt-3 border-t border-slate-200 flex items-center gap-2 text-xs text-slate-500">
-              <i class="fa-regular fa-eye text-amber-500"></i> Observa heces y apetito
-            </div>
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl relative">
-            <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2.5 py-1 rounded-md">Días 3 y 4</span>
-            <div class="mt-3 font-extrabold text-slate-800 text-lg">50% Habitual + 50% Natural</div>
-            <p class="text-xs text-slate-600 mt-2">Mitad y mitad si las deposiciones siguen firmes y bien formadas.</p>
-            <div class="mt-4 pt-3 border-t border-slate-200 flex items-center gap-2 text-xs text-slate-500">
-              <i class="fa-solid fa-droplet-slash text-amber-500"></i> Sin heces blandas ni gases
-            </div>
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl relative">
-            <span class="text-xs font-bold text-amber-600 bg-amber-100 px-2.5 py-1 rounded-md">Días 5 y 6</span>
-            <div class="mt-3 font-extrabold text-slate-800 text-lg">25% Habitual + 75% Natural</div>
-            <p class="text-xs text-slate-600 mt-2">La comida de verdad ya predomina el plato. Energía estable y aliento fresco.</p>
-            <div class="mt-4 pt-3 border-t border-slate-200 flex items-center gap-2 text-xs text-slate-500">
-              <i class="fa-solid fa-shield-dog text-amber-500"></i> Excelente adaptación
-            </div>
-          </div>
-
-          <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl relative">
-            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-md">Desde Día 7</span>
-            <div class="mt-3 font-extrabold text-emerald-900 text-lg">100% Comida Natural</div>
-            <p class="text-xs text-emerald-700 mt-2">¡Transición completada! Puedes comenzar a variar proteínas y vegetales poco a poco.</p>
-            <div class="mt-4 pt-3 border-t border-emerald-200 flex items-center gap-2 text-xs text-emerald-700 font-bold">
-              <i class="fa-solid fa-circle-check text-emerald-600"></i> Éxito total
-            </div>
-          </div>
-        </div>
-
-        <!-- Alert Box for Loose Stools -->
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900 flex gap-3 items-start">
-          <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg mt-0.5"></i>
-          <div>
-            <strong class="font-bold">¿Qué hacer si aparecen heces blandas o náuseas?</strong>
-            <p class="mt-0.5">No te preocupes. Retrocede al paso anterior durante 2 o 3 días más para darle tiempo a su flora intestinal. Si la diarrea o vómitos persisten por más de 24 horas, suspende el cambio y consulta al veterinario.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Storage & Freezing Section -->
-      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
-        <div class="border-b border-slate-100 pb-4">
-          <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider">Organización en Casa</span>
-          <h2 class="text-2xl font-extrabold text-slate-900 mt-2">Cómo Porcionar, Congelar y Descongelar</h2>
-          <p class="text-xs text-slate-500 mt-1">Gana tiempo organizando las porciones semanales con total seguridad higiénica.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="space-y-3">
-            <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center font-bold text-lg">1</div>
-            <h3 class="font-bold text-slate-800 text-base">Porcionar & Congelar</h3>
-            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
-              <li>Deja enfriar la comida por completo antes de tapar los recipientes.</li>
-              <li>Divide en porciones individuales diarias o por toma para evitar desperdicios.</li>
-              <li>Usa recipientes herméticos o bolsas de congelación etiquetadas con fecha y receta.</li>
-              <li>Conserva congelado de 2 a 3 meses máximo.</li>
-            </ul>
-          </div>
-
-          <div class="space-y-3">
-            <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center font-bold text-lg">2</div>
-            <h3 class="font-bold text-slate-800 text-base">Descongelado Seguro</h3>
-            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
-              <li>Pasa la porción al refrigerador la noche anterior (nunca la dejes a temperatura ambiente).</li>
-              <li>Sirve a temperatura ambiente o tibia, nunca caliente.</li>
-              <li>Nunca vuelvas a congelar una porción que ya ha sido descongelada.</li>
-            </ul>
-          </div>
-
-          <div class="space-y-3">
-            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-lg">3</div>
-            <h3 class="font-bold text-slate-800 text-base">Higiene en la Cocina</h3>
-            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
-              <li>Lava tus manos antes y después de manipular ingredientes.</li>
-              <li>Usa tablas de picar separadas para carnes y vegetales.</li>
-              <li>Lava el plato de tu perro diariamente con agua y jabón.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- TAB 5: NUTRIPET IA ADVISOR (GEMINI API) -->
-    <!-- ========================================== -->
-    <section id="sec-ai" class="hidden space-y-6">
-      <div class="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <div class="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold text-amber-100 mb-2">
-            <i class="fa-solid fa-sparkles"></i> Potenciado por Gemini 3 Flash
-          </div>
-          <h2 class="text-2xl font-extrabold">Asistente Virtual NutriPet IA</h2>
-          <p class="text-xs text-amber-100 mt-1 max-w-xl">
-            Resuelve dudas específicas sobre la alimentación de tu perro, genera menús semanales personalizados o consulta qué ingredientes sustituir.
-          </p>
-        </div>
-        <div class="w-12 h-12 bg-white text-amber-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
-          🤖
-        </div>
-      </div>
-
-      <!-- Quick Prompt Suggestion Pills -->
-      <div class="flex flex-wrap gap-2 text-xs">
-        <button onclick="sendQuickPrompt('¿Puedo darle brócoli a mi perro y cómo debo prepararlo?')" class="bg-white border border-slate-200 hover:border-amber-400 text-slate-700 px-3 py-2 rounded-xl transition">
-          🥦 ¿Cómo preparar el brócoli?
-        </button>
-        <button onclick="sendQuickPrompt('Crea un menú semanal variado cocido para mi perro usando pollo, res y vegetales recomendados.')" class="bg-white border border-slate-200 hover:border-amber-400 text-slate-700 px-3 py-2 rounded-xl transition">
-          📅 Generar Menú Semanal Cocido
-        </button>
-        <button onclick="sendQuickPrompt('Mi perro hizo heces un poco blandas en el día 3 de la transición, ¿qué hago?')" class="bg-white border border-slate-200 hover:border-amber-400 text-slate-700 px-3 py-2 rounded-xl transition">
-          💩 Heces blandas en transición
-        </button>
-        <button onclick="sendQuickPrompt('¿Cuáles son los sustitutos de la proteína si mi perro es alérgico al pollo?')" class="bg-white border border-slate-200 hover:border-amber-400 text-slate-700 px-3 py-2 rounded-xl transition">
-          🍗 Sustitutos para alergia al pollo
-        </button>
-      </div>
-
-      <!-- Chat Container -->
-      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col h-[500px]">
-        <!-- Messages Area -->
-        <div id="ai-messages" class="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4">
-          <!-- Initial AI Message -->
-          <div class="flex gap-3 items-start max-w-2xl">
-            <div class="w-8 h-8 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0">
-              AI
-            </div>
-            <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 text-xs text-slate-800 leading-relaxed shadow-sm">
-              ¡Hola! Soy tu asistente <strong>NutriPet IA</strong>. Estoy programado con todas las reglas y recetas de tus guías Pet Comilón. 
-              <br><br>
-              ¿Tienes preguntas sobre ingredientes, porciones o deseas un plan semanal personalizado para tu mascota? ¡Escríbeme!
-            </div>
-          </div>
-        </div>
-
-        <!-- Input Box -->
-        <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-2 items-center">
-          <input type="text" id="ai-input" placeholder="Haz una pregunta a NutriPet IA..." onkeydown="if(event.key==='Enter') sendAiMessage()" class="flex-grow px-4 py-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 bg-white">
-          <button onclick="sendAiMessage()" id="ai-send-btn" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <span>Enviar</span> <i class="fa-solid fa-paper-plane"></i>
-          </button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Recipe Detail Modal -->
-  <div id="recipe-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl space-y-6 relative">
-      <button onclick="closeRecipeModal()" class="absolute top-6 right-6 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 transition">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <div id="modal-content">
-        <!-- Dynamically filled -->
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Global State
-    let currentDog = {
-      name: "Firulais",
-      weight: 10.0,
-      stage: "adult",
-      activity: "mod",
-      goal: "maintain",
-      diet: "cooked",
-      meals: 2,
-      dailyGrams: 250
-    };
-
-    // -------------------------------------------------------------
-    // RECIPES DATABASE (Extracted from PDF materials)
-    // -------------------------------------------------------------
-    const RECIPES_DB = [
-      // COOKED RECIPES (50 Collection)
-      { id: 1, name: "Huevo con Pimiento Amarillo y Remolacha", type: "cooked", protein: "Huevo", veg1: "Pimiento amarillo", veg2: "Remolacha", energy: "Arroz", time: "25-35 min", level: "Fácil", variation: { prot: "Sardina", v1: "Zanahoria", v2: "Calabaza", en: "Ñame" } },
-      { id: 2, name: "Carne Molida con Brócoli y Pimiento Amarillo", type: "cooked", protein: "Carne molida", veg1: "Brócoli", veg2: "Pimiento amarillo", energy: "Ñame", time: "25-35 min", level: "Fácil", variation: { prot: "Carne magra de res", v1: "Coliflor", v2: "Zanahoria", en: "Arroz" } },
-      { id: 3, name: "Lomo de Cerdo con Remolacha y Zanahoria", type: "cooked", protein: "Lomo de cerdo", veg1: "Remolacha", veg2: "Zanahoria", energy: "Yuca", time: "30-40 min", level: "Fácil", variation: { prot: "Pavo", v1: "Calabaza", v2: "Pimiento amarillo", en: "Batata dulce" } },
-      { id: 4, name: "Pavo con Pepino y Espinaca", type: "cooked", protein: "Pavo", veg1: "Pepino", veg2: "Espinaca", energy: "Arroz", time: "25-35 min", level: "Fácil", variation: { prot: "Pollo", v1: "Chayote", v2: "Col rizada", en: "Arracacha" } },
-      { id: 5, name: "Sardina con Zanahoria y Espinaca", type: "cooked", protein: "Sardina", veg1: "Zanahoria", veg2: "Espinaca", energy: "Ñame", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Calabaza", v2: "Col rizada", en: "Papa" } },
-      { id: 6, name: "Carne Magra de Res con Pimiento y Coliflor", type: "cooked", protein: "Carne magra de res", veg1: "Pimiento amarillo", veg2: "Coliflor", energy: "Arroz", time: "25-35 min", level: "Fácil", variation: { prot: "Carne molida", v1: "Zanahoria", v2: "Brócoli", en: "Ñame blanco" } },
-      { id: 7, name: "Carne Molida con Coliflor y Pepino", type: "cooked", protein: "Carne molida", veg1: "Coliflor", veg2: "Pepino", energy: "Ñame", time: "25-35 min", level: "Fácil", variation: { prot: "Carne magra", v1: "Brócoli", v2: "Chayote", en: "Yuca" } },
-      { id: 8, name: "Huevo con Chayote y Calabacín", type: "cooked", protein: "Huevo", veg1: "Chayote", veg2: "Calabacín", energy: "Arroz", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Pepino", v2: "Zanahoria", en: "Ñame blanco" } },
-      { id: 9, name: "Pescado Blanco con Remolacha y Coliflor", type: "cooked", protein: "Pescado blanco", veg1: "Remolacha", veg2: "Coliflor", energy: "Ñame", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Zanahoria", v2: "Brócoli", en: "Yuca" } },
-      { id: 10, name: "Conejo con Remolacha y Calabacín", type: "cooked", protein: "Conejo", veg1: "Remolacha", veg2: "Calabacín", energy: "Yuca", time: "30-40 min", level: "Fácil", variation: { prot: "Pescado blanco", v1: "Calabaza", v2: "Chayote", en: "Arracacha" } },
-      { id: 11, name: "Tilapia con Col Rizada y Pepino", type: "cooked", protein: "Tilapia", veg1: "Col rizada", veg2: "Pepino", energy: "Yuca", time: "30-40 min", level: "Fácil", variation: { prot: "Pescado blanco", v1: "Espinaca", v2: "Chayote", en: "Batata dulce" } },
-      { id: 12, name: "Huevo con Pepino y Pimiento Amarillo", type: "cooked", protein: "Huevo", veg1: "Pepino", veg2: "Pimiento amarillo", energy: "Ñame blanco", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Chayote", v2: "Zanahoria", en: "Arroz" } },
-      { id: 13, name: "Carne Molida con Remolacha y Col Rizada", type: "cooked", protein: "Carne molida", veg1: "Remolacha", veg2: "Col rizada", energy: "Arracacha", time: "25-35 min", level: "Fácil", variation: { prot: "Carne magra", v1: "Calabaza", v2: "Espinaca", en: "Yuca" } },
-      { id: 14, name: "Hígado de Res con Pimiento y Calabacín", type: "cooked", protein: "Hígado de res", veg1: "Pimiento amarillo", veg2: "Calabacín", energy: "Arroz", time: "25-35 min", level: "Fácil", variation: { prot: "Pollo", v1: "Zanahoria", v2: "Chayote", en: "Ñame" } },
-      { id: 15, name: "Sardina con Pepino y Zanahoria", type: "cooked", protein: "Sardina", veg1: "Pepino", veg2: "Zanahoria", energy: "Arracacha", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Chayote", v2: "Calabaza", en: "Papa" } },
-      { id: 16, name: "Tilapia con Chayote y Espinaca", type: "cooked", protein: "Tilapia", veg1: "Chayote", veg2: "Espinaca", energy: "Papa", time: "25-35 min", level: "Fácil", variation: { prot: "Pescado blanco", v1: "Pepino", v2: "Col rizada", en: "Arroz" } },
-      { id: 17, name: "Pollo con Calabaza y Calabacín", type: "cooked", protein: "Pollo", veg1: "Calabaza", veg2: "Calabacín", energy: "Ñame", time: "25-35 min", level: "Fácil", variation: { prot: "Pavo", v1: "Zanahoria", v2: "Chayote", en: "Arracacha" } },
-      { id: 18, name: "Sardina con Remolacha y Pepino", type: "cooked", protein: "Sardina", veg1: "Remolacha", veg2: "Pepino", energy: "Papa", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Calabaza", v2: "Chayote", en: "Arroz" } },
-      { id: 19, name: "Lomo de Cerdo con Col Rizada y Pimiento", type: "cooked", protein: "Lomo de cerdo", veg1: "Col rizada", veg2: "Pimiento amarillo", energy: "Arroz", time: "25-35 min", level: "Fácil", variation: { prot: "Pavo", v1: "Espinaca", v2: "Zanahoria", en: "Ñame blanco" } },
-      { id: 20, name: "Carne Molida con Pimiento y Espinaca", type: "cooked", protein: "Carne molida", veg1: "Pimiento amarillo", veg2: "Espinaca", energy: "Papa", time: "25-35 min", level: "Fácil", variation: { prot: "Carne magra", v1: "Zanahoria", v2: "Col rizada", en: "Arroz" } },
-      { id: 21, name: "Pollo con Brócoli y Zanahoria", type: "cooked", protein: "Pollo", veg1: "Brócoli", veg2: "Zanahoria", energy: "Arracacha", time: "25-35 min", level: "Fácil", variation: { prot: "Pavo", v1: "Coliflor", v2: "Calabaza", en: "Batata dulce" } },
-      { id: 22, name: "Pescado Blanco con Col Rizada y Coliflor", type: "cooked", protein: "Pescado blanco", veg1: "Col rizada", veg2: "Coliflor", energy: "Batata dulce", time: "25-35 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Espinaca", v2: "Brócoli", en: "Yuca" } },
-
-      // RAW NO BONE RECIPES (Cruda Sin Hueso)
-      { id: 101, name: "Hígado de Res con Zanahoria y Col Rizada", type: "raw_nobone", protein: "Hígado de res", veg1: "Zanahoria", veg2: "Col rizada", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Carne magra", v1: "Remolacha", v2: "Espinaca", en: "Huevo" } },
-      { id: 102, name: "Pavo con Chayote y Pimiento Amarillo", type: "raw_nobone", protein: "Pavo", veg1: "Chayote", veg2: "Pimiento amarillo", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Pollo", v1: "Calabacín", v2: "Zanahoria", en: "Huevo" } },
-      { id: 103, name: "Carne Molida con Zanahoria y Coliflor", type: "raw_nobone", protein: "Carne molida", veg1: "Zanahoria", veg2: "Coliflor", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Carne magra", v1: "Remolacha", v2: "Brócoli", en: "Huevo" } },
-      { id: 104, name: "Bacalao con Coliflor y Pepino", type: "raw_nobone", protein: "Bacalao", veg1: "Coliflor", veg2: "Pepino", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Pescado blanco", v1: "Brócoli", v2: "Chayote", en: "Huevo" } },
-      { id: 105, name: "Pollo con Zanahoria y Pepino", type: "raw_nobone", protein: "Pollo", veg1: "Zanahoria", veg2: "Pepino", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Pavo", v1: "Calabaza", v2: "Calabacín", en: "Huevo" } },
-      { id: 106, name: "Tilapia con Zanahoria y Calabaza", type: "raw_nobone", protein: "Tilapia", veg1: "Zanahoria", veg2: "Calabaza", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Sardina", v1: "Chayote", v2: "Pepino", en: "Huevo" } },
-      { id: 107, name: "Conejo con Remolacha y Zanahoria", type: "raw_nobone", protein: "Conejo", veg1: "Remolacha", veg2: "Zanahoria", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Carne magra", v1: "Zanahoria", v2: "Calabaza", en: "Huevo" } },
-      { id: 108, name: "Sardina con Pimiento Amarillo y Remolacha", type: "raw_nobone", protein: "Sardina", veg1: "Pimiento amarillo", veg2: "Remolacha", energy: "Huevo (Complemento)", time: "10-15 min", level: "Fácil", variation: { prot: "Tilapia", v1: "Zanahoria", v2: "Calabaza", en: "Huevo" } },
-
-      // RAW WITH BONE RECIPES (Cruda Con Hueso)
-      { id: 201, name: "Pollo con Cuello Crudo, Zanahoria y Espinaca", type: "raw_bone", protein: "Pollo", bone: "Cuello crudo de pollo", veg1: "Zanahoria", veg2: "Espinaca", time: "10-15 min", level: "Supervisión", variation: { prot: "Pavo", v1: "Calabaza", v2: "Coliflor", en: "Sin hueso cocido" } },
-      { id: 202, name: "Pavo con Ala Cruda, Espinaca y Calabaza", type: "raw_bone", protein: "Pavo", bone: "Ala cruda de pavo", veg1: "Espinaca", veg2: "Calabaza", time: "10-15 min", level: "Supervisión", variation: { prot: "Pollo", v1: "Col rizada", v2: "Zanahoria", en: "Sin hueso cocido" } },
-      { id: 203, name: "Pollo con Dorso Crudo, Pepino y Chayote", type: "raw_bone", protein: "Pollo", bone: "Dorso crudo de pollo", veg1: "Pepino", veg2: "Chayote", time: "10-15 min", level: "Supervisión", variation: { prot: "Pavo", v1: "Calabacín", v2: "Coliflor", en: "Sin hueso cocido" } },
-      { id: 204, name: "Pato con Muslito de Ala, Coliflor y Zanahoria", type: "raw_bone", protein: "Pato", bone: "Muslito de ala crudo", veg1: "Coliflor", veg2: "Zanahoria", time: "10-15 min", level: "Supervisión", variation: { prot: "Pavo", v1: "Brócoli", v2: "Calabaza", en: "Sin hueso cocido" } },
-      { id: 205, name: "Pollo con Cuello Crudo, Pepino y Pimiento", type: "raw_bone", protein: "Pollo", bone: "Cuello crudo de pollo", veg1: "Pepino", veg2: "Pimiento amarillo", time: "10-15 min", level: "Supervisión", variation: { prot: "Pavo", v1: "Chayote", v2: "Zanahoria", en: "Sin hueso cocido" } },
-      { id: 206, name: "Pavo con Ala Cruda, Remolacha y Coliflor", type: "raw_bone", protein: "Pavo", bone: "Ala cruda de pavo", veg1: "Remolacha", veg2: "Coliflor", time: "10-15 min", level: "Supervisión", variation: { prot: "Pato", v1: "Zanahoria", v2: "Brócoli", en: "Sin hueso cocido" } }
+      // Rojo (Prohibido / NUNCA)
+      { nombre: 'Cebolla y Ajo', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Destruyen los glóbulos rojos provocando anemia hemolítica severa.', prep: 'PROHIBIDO en cualquier forma (fresco, en polvo, caldos comerciales).' },
+      { nombre: 'Chocolate y Café', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Contienen teobromina y cafeína. Afectan corazón y sistema nervioso.', prep: 'Peligro de muerte. Mantener lejos del alcance.' },
+      { nombre: 'Uvas y Pasas', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Causan insuficiencia renal aguda e irreversible en dosis impredecibles.', prep: 'NUNCA ofrecer, ni siquiera una sola unidad.' },
+      { nombre: 'Xilitol (Edulcorante)', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Provoca caída repentina de azúcar en sangre y fallo hepático.', prep: 'Presente en chicles, crema de maní light y postres dietéticos.' },
+      { nombre: 'Huesos cocidos', categoria: 'Peligro mecánico', tipo: 'rojo', desc: 'La cocción rigidiza el hueso y hace que se astille al masticar.', prep: 'Provoca perforaciones estomacales y laceraciones de esófago.' },
+      { nombre: 'Aguacate / Palta', categoria: 'Tóxico', tipo: 'rojo', desc: 'Contiene persina y alto nivel de grasa que puede desencadenar pancreatitis.', prep: 'Evitar hojas, pulpa y hueso.' }
     ];
 
-    // -------------------------------------------------------------
-    // SEMAFORO DATABASE (Extracted from PDF materials)
-    // -------------------------------------------------------------
-    const SEMAFORO_DB = [
-      // GREEN (PUEDE)
-      { name: "Pollo Cocido", category: "verde", icon: "🍗", desc: "Proteína magra, sencilla y muy versátil. Retirar siempre piel, grasa sobrante y huesos.", prep: "Cocinar hervido o al vapor sin sal ni cebolla. Desmechar bien." },
-      { name: "Carne Magra de Res", category: "verde", icon: "🥩", desc: "Excelente fuente de proteína limpia y aminoácidos esenciales.", prep: "Cocinar completamente en agua sin condimentos. Cortar en cubos pequeños." },
-      { name: "Pescado Limpio (Tilapia/Bacalao)", category: "verde", icon: "🐟", desc: "Proteína ligera de excelente digestibilidad.", prep: "Desmenuzar con los dedos y verificar meticulosamente que no tenga espinas." },
-      { name: "Huevo Cocido", category: "verde", icon: "🥚", desc: "Proteína completa de altísimo valor biológico.", prep: "Hervir hasta que la yema quede bien firme. Picar en trozos." },
-      { name: "Calabaza Cocida", category: "verde", icon: "🎃", desc: "Aporta fibra soluble, excelente para regular la digestión e hidratar.", prep: "Cocinar al vapor o hervida sin piel dura." },
-      { name: "Zanahoria", category: "verde", icon: "🥕", desc: "Rica en betacarotenos y fibra soluble.", prep: "Cocida para mejor digestión o rallada en trozos aptos para su tamaño." },
-      { name: "Chayote / Guatila", category: "verde", icon: "🥒", desc: "Vegetal muy suave, hidratante y ligero.", prep: "Pelar si la cáscara es dura, hervir y picar." },
-      { name: "Batata Dulce / Camote", category: "verde", icon: "🍠", desc: "Fuente energizante de asimilación lenta y fibra.", prep: "Pelar y cocinar muy bien hasta que quede blanda." },
-      { name: "Arroz Blanco Cocido", category: "verde", icon: "🍚", desc: "Fuente energética muy suave para estómagos sensibles.", prep: "Cocinar bastante en agua, sin sal ni aceites ni cebolla/ajo." },
-      { name: "Manzana (Sin Semillas)", category: "verde", icon: "🍎", desc: "Premio ocasional fresco y rico en fibra.", prep: "Retirar corazón y SEMILLAS (tóxicas). Servir en trozos pequeños." },
-      { name: "Sardina Cocida sin Espinas", category: "verde", icon: "🐟", desc: "Rica en ácidos grasos Omega 3 y proteína.", prep: "En agua o al vapor, sin sal añadida. Retirar espinas duras." },
-      { name: "Sandía (Sin Semillas)", category: "verde", icon: "🍉", desc: "Muy refrescante e hidratante en días calurosos.", prep: "Retirar cáscara y todas las semillas." },
-
-      // YELLOW (CUIDADO / MODERACIÓN)
-      { name: "Hígado de Res / Vísceras", category: "amarillo", icon: "🫀", desc: "Superalimento rico en vitamina A e hierro, pero el EXCESO sostenido puede causar hipervitaminosis A.", prep: "Usar en porciones estrictas (máximo 5-10% del plato total)." },
-      { name: "Brócoli y Coliflor", category: "amarillo", icon: "🥦", desc: "Vegetales nutritivos, pero en exceso producen gases y molestias abdominales.", prep: "Cocinar siempre al vapor y ofrecer en pequeñas cantidades." },
-      { name: "Yogur Natural / Quesos", category: "amarillo", icon: "🧀", desc: "Buena fuente de probióticos, pero muchos perros son intolerantes a la lactosa.", prep: "Solo versión 100% natural sin azúcar ni edulcorantes. Probar una cucharadita." },
-      { name: "Pasta de Maní (Crema de Cacahuate)", category: "amarillo", icon: "🥜", desc: "Muy calórica. ALERTA: Algunas marcas comerciales contienen XILITOL (Mortal).", prep: "Verificar la etiqueta que diga '100% maní sin xilitol'. Dar solo una punta de cuchara." },
-      { name: "Cachorros y Perros Mayores", category: "amarillo", icon: "🐾", desc: "Requieren requerimientos nutricionales estrictos de calcio/fósforo o ajustes clínicos.", prep: "Consultar a un profesional veterinario antes de hacer dietas caseras prolongadas." },
-
-      // RED (NUNCA / TÓXICO)
-      { name: "Cebolla y Ajo (En todas sus formas)", category: "rojo", icon: "🧅", desc: "TÓXICO GRAVE. Contienen compuestos sulfóxidos que destruyen los glóbulos rojos provocando anemia hemolítica.", prep: "PROHIBIDO. Ni en polvo, ni en caldos comerciales, ni cocinado." },
-      { name: "Chocolate y Cacao", category: "rojo", icon: "🍫", desc: "TÓXICO. Contiene teobromina que sobreestimula el sistema nervioso y cardiovascular.", prep: "MANTENER FUERA DEL ALCANCE. En caso de ingesta, acudir a urgencias." },
-      { name: "Uvas y Pasas", category: "rojo", icon: "🍇", desc: "ALTAMENTE TÓXICO. Asociado directamente a fallo renal agudo e irreversible, incluso en dosis mínimas.", prep: "PROHIBIDO TOTALMENTE." },
-      { name: "Huesos Cocidos", category: "rojo", icon: "🦴", desc: "PELIGRO DE PERFORACIÓN. Al cocinarse, la estructura del hueso cambia y se astilla como cristal en el estómago e intestinos.", prep: "NUNCA ofrecer huesos cocidos, horneados ni fritos." },
-      { name: "Xilitol y Edulcorantes Artificiales", category: "rojo", icon: "🍬", desc: "MORTAL. Provoca hipoglucemia severa e insuficiencia hepática aguda en pocos minutos.", prep: "Presente en chicles, dulces 'sin azúcar' y cremas de maní baratas." },
-      { name: "Frituras y Embutidos Salados", category: "rojo", icon: "🥓", desc: "Ricos en grasas saturadas y sodio. Pueden detonar cuadros agudos de Pancreatitis.", prep: "EVITAR completamente." }
+    // --- BASE DE RECETAS (MUESTRA DE LAS COLECCIONES) ---
+    const RECETAS_BASE = [
+      { id: 1, titulo: "Huevo con Pimiento Amarillo y Remolacha", tipoDieta: "cocida", proteina: "Huevo cocido", vegetal: "Pimiento amarillo y Remolacha", energia: "Arroz", partes: { prot: 40, veg: 30, ene: 30 }, instrucciones: "Cocinar los huevos hasta firmes. Hervir vegetales y arroz por separado sin sal. Mezclar al templar." },
+      { id: 2, titulo: "Carne Molida con Brócoli y Pimiento", tipoDieta: "cocida", proteina: "Carne molida de res", vegetal: "Brócoli y Pimiento", energia: "Ñame / Batata", partes: { prot: 50, veg: 25, ene: 25 }, instrucciones: "Saltear la carne molida solo en agua. Cocinar vegetales al vapor y majar el ñame." },
+      { id: 3, titulo: "Lomo de Cerdo con Remolacha y Zanahoria", tipoDieta: "cocida", proteina: "Lomo de cerdo magro", vegetal: "Remolacha y Zanahoria", energia: "Yuca bien cocida", partes: { prot: 45, veg: 30, ene: 25 }, instrucciones: "Cocinar el cerdo en cubos pequeños. Hervir la yuca hasta que esté suave y blanda." },
+      { id: 4, titulo: "Pavo con Pepino y Espinaca", tipoDieta: "cocida", proteina: "Pavo picado", vegetal: "Pepino y Espinaca", energia: "Arroz blanco", partes: { prot: 50, veg: 25, ene: 25 }, instrucciones: "Cocinar el pavo al vapor. Blanquear la espinaca y cortar el pepino fino." },
+      { id: 5, titulo: "Sardina con Zanahoria y Espinaca", tipoDieta: "cocida", proteina: "Sardina en agua", vegetal: "Zanahoria y Espinaca", energia: "Papa cocida", partes: { prot: 40, veg: 35, ene: 25 }, instrucciones: "Desmenuzar la sardina verificando espinas. Cocinar la papa sin piel y majar con vegetales." },
+      { id: 6, titulo: "Hígado de Res con Zanahoria y Col Rizada", tipoDieta: "cruda_sin_hueso", proteina: "Hígado de Res (Víscera) + Carne", vegetal: "Zanahoria y Col Rizada", energia: "Huevo Crudo", partes: { prot: 60, veg: 30, ene: 10 }, instrucciones: "Picar el hígado en cubos pequeños (respetar porcentaje de víscera). Cortar col y zanahoria fina." },
+      { id: 7, titulo: "Pollo con Cuello Crudo, Zanahoria y Espinaca", tipoDieta: "cruda_con_hueso", proteina: "Pollo magro + Cuello Crudo", vegetal: "Zanahoria y Espinaca", energia: "Ninguna (Low Carb)", partes: { prot: 70, veg: 30, ene: 0 }, instrucciones: "NUNCA COCINAR EL HUESO. Servir el cuello crudo entero bajo supervisión directa." }
     ];
 
-    // -------------------------------------------------------------
-    // CALCULATOR CORE LOGIC
-    // -------------------------------------------------------------
-    function updateWeightDisplay(val) {
-      document.getElementById('weight-val').innerText = parseFloat(val).toFixed(1) + ' kg';
-      calculatePortion();
-    }
+    function App() {
+      // --- ESTADOS ---
+      const [tab, setTab] = useState('calculadora');
 
-    function setActivity(act) {
-      currentDog.activity = act;
-      document.querySelectorAll('.act-btn').forEach(btn => {
-        btn.classList.remove('border-2', 'border-amber-500', 'bg-amber-50', 'text-amber-800');
-        btn.classList.add('border-slate-200', 'text-slate-600');
+      // Formulario Mascota
+      const [nombre, setNombre] = useState('Firulais');
+      const [peso, setPeso] = useState(10.0);
+      const [etapa, setEtapa] = useState('adulto'); // cachorro, adulto, senior
+      const [actividad, setActividad] = useState('normal'); // baja, normal, alta
+      const [objetivo, setObjetivo] = useState('mantener'); // bajar, mantener, subir
+      const [tipoDieta, setTipoDieta] = useState('cocida'); // cocida, cruda_sin_hueso, cruda_con_hueso
+
+      // Filtros Semáforo
+      const [busquedaSemaforo, setBusquedaSemaforo] = useState('');
+      const [filtroSemaforo, setFiltroSemaforo] = useState('todos');
+
+      // Estado Transición
+      const [diasTransicion, setDiasTransicion] = useState(() => {
+        const saved = localStorage.getItem('pet_transicion');
+        return saved ? JSON.parse(saved) : { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
       });
-      const target = document.getElementById('act-' + act);
-      target.classList.remove('border-slate-200', 'text-slate-600');
-      target.classList.add('border-2', 'border-amber-500', 'bg-amber-50', 'text-amber-800');
-      calculatePortion();
-    }
 
-    function setMeals(count) {
-      currentDog.meals = count;
-      document.querySelectorAll('.meal-btn').forEach(btn => {
-        btn.classList.remove('border-2', 'border-amber-500', 'bg-amber-50', 'text-amber-800');
-        btn.classList.add('border-slate-200', 'text-slate-600');
-      });
-      const target = document.getElementById('meal-' + count);
-      target.classList.remove('border-slate-200', 'text-slate-600');
-      target.classList.add('border-2', 'border-amber-500', 'bg-amber-50', 'text-amber-800');
-      calculatePortion();
-    }
+      useEffect(() => {
+        localStorage.setItem('pet_transicion', JSON.stringify(diasTransicion));
+      }, [diasTransicion]);
 
-    function calculatePortion() {
-      // Read Inputs
-      const name = document.getElementById('input-name').value || "Firulais";
-      const weight = parseFloat(document.getElementById('input-weight').value);
-      const stage = document.getElementById('input-stage').value;
-      const goal = document.getElementById('input-goal').value;
-      const diet = document.querySelector('input[name="diet-type"]:checked').value;
+      // --- LÓGICA DE CÁLCULO ---
+      const calculoNutricional = useMemo(() => {
+        let porcentajeBase = 2.5; // Porcentaje del peso corporal por defecto para adulto
 
-      currentDog.name = name;
-      currentDog.weight = weight;
-      currentDog.stage = stage;
-      currentDog.goal = goal;
-      currentDog.diet = diet;
+        if (etapa === 'cachorro') porcentajeBase = 6.0;
+        else if (etapa === 'senior') porcentajeBase = 2.0;
 
-      // Base percentage calculation according to Pet Comilón rules
-      let percent = 2.5; // Default adult base
+        // Ajuste por actividad
+        if (actividad === 'baja') porcentajeBase -= 0.3;
+        if (actividad === 'alta') porcentajeBase += 0.8;
 
-      if (stage === 'puppy_young') percent = 8.5; // < 4 months
-      else if (stage === 'puppy_mid') percent = 6.5; // 4-6 months
-      else if (stage === 'puppy_late') percent = 4.5; // 6-12 months
-      else if (stage === 'senior') percent = 2.0;
-      else if (stage === 'lactating') percent = 5.0;
-      else { // Adult
-        if (currentDog.activity === 'low') percent = 2.0;
-        else if (currentDog.activity === 'mod') percent = 2.5;
-        else if (currentDog.activity === 'high') percent = 3.5;
-      }
+        // Ajuste por objetivo
+        if (objetivo === 'bajar') porcentajeBase -= 0.4;
+        if (objetivo === 'subir') porcentajeBase += 0.5;
 
-      // Goal adjustments
-      if (goal === 'loss') percent *= 0.8;
-      else if (goal === 'gain') percent *= 1.2;
+        // Limites razonables
+        if (porcentajeBase < 1.5) porcentajeBase = 1.5;
+        if (porcentajeBase > 10.0) porcentajeBase = 10.0;
 
-      // Calculate Grams
-      const dailyGrams = Math.round((weight * 10) * percent);
-      const mealGrams = Math.round(dailyGrams / currentDog.meals);
+        const totalGramosDiarios = Math.round((peso * 1000) * (porcentajeBase / 100));
+        const porToma2 = Math.round(totalGramosDiarios / 2);
 
-      currentDog.dailyGrams = dailyGrams;
+        // Desglose de componentes según tipo de dieta
+        let proteinaGrams = 0;
+        let vegetalGrams = 0;
+        let energiaGrams = 0;
+        let visceraGrams = 0;
+        let huesoGrams = 0;
 
-      // Update UI Header / Badge elements
-      document.getElementById('res-percent').innerText = percent.toFixed(1) + ' %';
-      document.getElementById('res-daily-grams').innerText = dailyGrams + ' g';
-      document.getElementById('res-meals-count').innerText = currentDog.meals;
-      document.getElementById('res-meal-grams').innerText = mealGrams + ' g';
-      document.getElementById('res-btn-dog-name').innerText = name;
-      document.getElementById('recipe-dog-portion-label').innerText = dailyGrams + 'g diarios';
-
-      // Macronutrient Breakdown depending on Diet Type
-      renderBreakdown(dailyGrams, diet);
-    }
-
-    function renderBreakdown(total, diet) {
-      const breakdownContainer = document.getElementById('breakdown-list');
-      const macroBar = document.getElementById('macro-bar');
-      const dietLabel = document.getElementById('res-diet-label');
-      document.getElementById('res-total-check').innerText = 'Total: ' + total + 'g';
-
-      let items = [];
-
-      if (diet === 'cooked') {
-        dietLabel.innerText = "Dieta Cocida Equilibrada (Pet Comilón)";
-        const protGrams = Math.round(total * 0.45);
-        const vegGrams = Math.round(total * 0.25);
-        const carbGrams = Math.round(total * 0.20);
-        const viscGrams = Math.round(total * 0.10);
-
-        items = [
-          { name: "Proteína Principal (Pollo, Pavo, Res, Pescado)", grams: protGrams, pct: "45%", color: "bg-amber-500", text: "text-amber-700" },
-          { name: "Vegetales Digestivos (Calabaza, Zanahoria, Calabacín)", grams: vegGrams, pct: "25%", color: "bg-emerald-500", text: "text-emerald-700" },
-          { name: "Energía / Carbohidrato Cocido (Arroz, Batata, Ñame)", grams: carbGrams, pct: "20%", color: "bg-yellow-500", text: "text-yellow-700" },
-          { name: "Vísceras y Complementos (Hígado, Huevo)", grams: viscGrams, pct: "10%", color: "bg-purple-500", text: "text-purple-700" }
-        ];
-      } else if (diet === 'raw_nobone') {
-        dietLabel.innerText = "Dieta Cruda Sin Hueso (Modelada)";
-        const protGrams = Math.round(total * 0.65);
-        const viscGrams = Math.round(total * 0.15);
-        const vegGrams = Math.round(total * 0.20);
-
-        items = [
-          { name: "Proteína Magra Cruda (Carne, Pavo, Pescado)", grams: protGrams, pct: "65%", color: "bg-amber-500", text: "text-amber-700" },
-          { name: "Vegetales y Frutas Permitidas", grams: vegGrams, pct: "20%", color: "bg-emerald-500", text: "text-emerald-700" },
-          { name: "Vísceras (5% Hígado + 10% Otras Vísceras)", grams: viscGrams, pct: "15%", color: "bg-purple-500", text: "text-purple-700" }
-        ];
-      } else { // Raw with bone
-        dietLabel.innerText = "Dieta Cruda BARF Con Hueso Carnoso Crudo";
-        const boneGrams = Math.round(total * 0.45);
-        const protGrams = Math.round(total * 0.35);
-        const viscGrams = Math.round(total * 0.10);
-        const vegGrams = Math.round(total * 0.10);
-
-        items = [
-          { name: "Hueso Carnoso Crudo Apropiado (Cuello, Ala, Dorso)", grams: boneGrams, pct: "45%", color: "bg-red-500", text: "text-red-700" },
-          { name: "Carne Magra Cruda", grams: protGrams, pct: "35%", color: "bg-amber-500", text: "text-amber-700" },
-          { name: "Vísceras (5% Hígado + 5% Otras)", grams: viscGrams, pct: "10%", color: "bg-purple-500", text: "text-purple-700" },
-          { name: "Vegetales y Frutas Trituradas", grams: vegGrams, pct: "10%", color: "bg-emerald-500", text: "text-emerald-700" }
-        ];
-      }
-
-      // Render Bar
-      macroBar.innerHTML = items.map(it => `<div style="width: ${it.pct}" class="${it.color} h-full"></div>`).join('');
-
-      // Render List
-      breakdownContainer.innerHTML = items.map(it => `
-        <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-          <div class="flex items-center gap-2.5">
-            <span class="w-3 h-3 rounded-full ${it.color}"></span>
-            <span class="text-xs font-semibold text-slate-800">${it.name}</span>
-          </div>
-          <div class="text-right">
-            <span class="font-bold text-sm text-slate-900">${it.grams} g</span>
-            <span class="block text-[10px] text-slate-400 font-medium">${it.pct} de la porción</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function setDogActiveBadge() {
-      const badge = document.getElementById('dog-summary-bar');
-      document.getElementById('badge-dog-name').innerText = currentDog.name;
-      
-      let dietTxt = "Cocida";
-      if (currentDog.diet === 'raw_nobone') dietTxt = "Cruda Sin Hueso";
-      if (currentDog.diet === 'raw_bone') dietTxt = "Cruda Con Hueso";
-
-      document.getElementById('badge-dog-details').innerText = `${currentDog.weight} kg • ${currentDog.diet === 'cooked' ? 'Cocida' : dietTxt}`;
-      document.getElementById('badge-daily-grams').innerText = `${currentDog.dailyGrams}g / día`;
-      badge.classList.remove('hidden');
-    }
-
-    // -------------------------------------------------------------
-    // RECIPE RENDERER & FILTERS
-    // -------------------------------------------------------------
-    function renderRecipes(recipes) {
-      const container = document.getElementById('recipes-grid');
-      const dogGrams = currentDog.dailyGrams;
-
-      if (!recipes || recipes.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-200">
-            <i class="fa-solid fa-utensils text-4xl text-slate-300 mb-3 block"></i>
-            <p class="text-sm font-bold text-slate-700">No se encontraron recetas con esos criterios.</p>
-            <p class="text-xs text-slate-400 mt-1">Prueba buscando otro ingrediente o cambiando el filtro de colección.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = recipes.map(r => {
-        // Calculate scaled ingredients
-        let protGrams, veg1Grams, veg2Grams, energyGrams;
-        
-        if (r.type === 'cooked') {
-          protGrams = Math.round(dogGrams * 0.45);
-          veg1Grams = Math.round(dogGrams * 0.15);
-          veg2Grams = Math.round(dogGrams * 0.15);
-          energyGrams = Math.round(dogGrams * 0.25);
-        } else if (r.type === 'raw_nobone') {
-          protGrams = Math.round(dogGrams * 0.65);
-          veg1Grams = Math.round(dogGrams * 0.10);
-          veg2Grams = Math.round(dogGrams * 0.10);
-          energyGrams = Math.round(dogGrams * 0.15);
-        } else { // raw_bone
-          protGrams = Math.round(dogGrams * 0.35);
-          veg1Grams = Math.round(dogGrams * 0.10);
-          veg2Grams = Math.round(dogGrams * 0.10);
-          energyGrams = Math.round(dogGrams * 0.45); // Bone portion
+        if (tipoDieta === 'cocida') {
+          proteinaGrams = Math.round(totalGramosDiarios * 0.50);
+          vegetalGrams = Math.round(totalGramosDiarios * 0.25);
+          energiaGrams = Math.round(totalGramosDiarios * 0.25);
+        } else if (tipoDieta === 'cruda_sin_hueso') {
+          proteinaGrams = Math.round(totalGramosDiarios * 0.65);
+          vegetalGrams = Math.round(totalGramosDiarios * 0.25);
+          visceraGrams = Math.round(totalGramosDiarios * 0.10);
+        } else if (tipoDieta === 'cruda_con_hueso') {
+          huesoGrams = Math.round(totalGramosDiarios * 0.45); // Hueso carnoso crudo
+          proteinaGrams = Math.round(totalGramosDiarios * 0.35); // Carne magra
+          visceraGrams = Math.round(totalGramosDiarios * 0.10);
+          vegetalGrams = Math.round(totalGramosDiarios * 0.10);
         }
 
-        let typeBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Cocida</span>`;
-        if (r.type === 'raw_nobone') typeBadge = `<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Cruda Sin Hueso</span>`;
-        if (r.type === 'raw_bone') typeBadge = `<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Cruda Con Hueso</span>`;
+        return {
+          porcentajePct: porcentajeBase.toFixed(1),
+          totalGramosDiarios,
+          porToma2,
+          proteinaGrams,
+          vegetalGrams,
+          energiaGrams,
+          visceraGrams,
+          huesoGrams
+        };
+      }, [peso, etapa, actividad, objetivo, tipoDieta]);
 
-        return `
-          <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
-            <div>
-              <div class="flex justify-between items-start mb-2">
-                ${typeBadge}
-                <span class="text-[11px] text-slate-400 font-semibold"><i class="fa-regular fa-clock"></i> ${r.time}</span>
-              </div>
-              <h3 class="font-bold text-slate-900 text-base leading-snug">${r.name}</h3>
+      // --- FILTRADO DE SEMÁFORO ---
+      const semaforoFiltrado = useMemo(() => {
+        return SEMAFORO_DATA.filter(item => {
+          const coincideTexto = item.nombre.toLowerCase().includes(busquedaSemaforo.toLowerCase()) ||
+                                item.categoria.toLowerCase().includes(busquedaSemaforo.toLowerCase()) ||
+                                item.desc.toLowerCase().includes(busquedaSemaforo.toLowerCase());
+          const coincideTipo = filtroSemaforo === 'todos' || item.tipo === filtroSemaforo;
+          return coincideTexto && coincideTipo;
+        });
+      }, [busquedaSemaforo, filtroSemaforo]);
 
-              <!-- Scaled Ingredients List -->
-              <div class="mt-4 space-y-1.5 border-t border-slate-100 pt-3">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Ingredientes para ${currentDog.name} (${dogGrams}g):</span>
-                
-                <div class="flex justify-between text-xs">
-                  <span class="text-slate-700 font-medium">🥩 ${r.protein}</span>
-                  <span class="font-bold text-slate-900">${protGrams}g</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                  <span class="text-slate-700 font-medium">🥦 ${r.veg1}</span>
-                  <span class="font-bold text-slate-900">${veg1Grams}g</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                  <span class="text-slate-700 font-medium">🥕 ${r.veg2}</span>
-                  <span class="font-bold text-slate-900">${veg2Grams}g</span>
-                </div>
-                <div class="flex justify-between text-xs">
-                  <span class="text-slate-700 font-medium">${r.bone ? '🦴 ' + r.bone : '🍚 ' + r.energy}</span>
-                  <span class="font-bold text-slate-900">${energyGrams}g</span>
-                </div>
-              </div>
-            </div>
-
-            <button onclick="openRecipeModal(${r.id})" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold py-2 rounded-xl text-xs transition border border-amber-200 flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-book-open"></i> Ver Preparación Completa
-            </button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function filterRecipes() {
-      const search = document.getElementById('recipe-search').value.toLowerCase();
-      const type = document.getElementById('filter-type').value;
-
-      const filtered = RECIPES_DB.filter(r => {
-        const matchesSearch = r.name.toLowerCase().includes(search) || 
-                              r.protein.toLowerCase().includes(search) || 
-                              r.veg1.toLowerCase().includes(search) || 
-                              r.veg2.toLowerCase().includes(search);
-        const matchesType = type === 'all' || r.type === type;
-        return matchesSearch && matchesType;
-      });
-
-      renderRecipes(filtered);
-    }
-
-    function openRecipeModal(id) {
-      const r = RECIPES_DB.find(item => item.id === id);
-      if (!r) return;
-
-      const dogGrams = currentDog.dailyGrams;
-      let protGrams = Math.round(dogGrams * 0.45);
-      let veg1Grams = Math.round(dogGrams * 0.15);
-      let veg2Grams = Math.round(dogGrams * 0.15);
-      let energyGrams = Math.round(dogGrams * 0.25);
-
-      const modalContent = document.getElementById('modal-content');
-      modalContent.innerHTML = `
-        <div class="space-y-4">
-          <div class="flex items-center gap-2">
-            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase">${r.type === 'cooked' ? 'Receta Cocida' : 'Receta Cruda'}</span>
-            <span class="text-xs text-slate-500 font-medium"><i class="fa-regular fa-clock"></i> ${r.time} • Nivel: ${r.level}</span>
-          </div>
-
-          <h2 class="text-2xl font-extrabold text-slate-900">${r.name}</h2>
-          <p class="text-xs text-slate-500">Paso a paso guiado del libro oficial Pet Comilón para la rutina de tu perro.</p>
-
-          <!-- Calculated Quantities Box -->
-          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
-            <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider">Porciones preparadas para ${currentDog.name} (${dogGrams}g / día):</h4>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div class="bg-white p-2.5 rounded-xl border border-amber-100 text-center">
-                <span class="block text-[10px] text-slate-400 font-bold">PROTEÍNA</span>
-                <span class="font-extrabold text-amber-700">${r.protein}</span>
-                <span class="block font-bold text-slate-800">${protGrams}g</span>
-              </div>
-              <div class="bg-white p-2.5 rounded-xl border border-amber-100 text-center">
-                <span class="block text-[10px] text-slate-400 font-bold">VEGETAL 1</span>
-                <span class="font-extrabold text-amber-700">${r.veg1}</span>
-                <span class="block font-bold text-slate-800">${veg1Grams}g</span>
-              </div>
-              <div class="bg-white p-2.5 rounded-xl border border-amber-100 text-center">
-                <span class="block text-[10px] text-slate-400 font-bold">VEGETAL 2</span>
-                <span class="font-extrabold text-amber-700">${r.veg2}</span>
-                <span class="block font-bold text-slate-800">${veg2Grams}g</span>
-              </div>
-              <div class="bg-white p-2.5 rounded-xl border border-amber-100 text-center">
-                <span class="block text-[10px] text-slate-400 font-bold">${r.bone ? 'HUESO' : 'ENERGÍA'}</span>
-                <span class="font-extrabold text-amber-700">${r.bone ? r.bone : r.energy}</span>
-                <span class="block font-bold text-slate-800">${energyGrams}g</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step by Step instructions -->
-          <div class="space-y-3 pt-2">
-            <h3 class="font-bold text-slate-800 text-sm">Paso a Paso de Preparación:</h3>
-            <ol class="space-y-2 text-xs text-slate-700 list-decimal list-inside">
-              <li><strong>Higiene previa:</strong> Lávate las manos y desinfecta los utensilios y la superficie de trabajo.</li>
-              <li><strong>Proteína:</strong> ${r.type === 'cooked' ? 'Cocina la proteína en agua hirviendo sin sal ni condimentos. Deja enfriar y pica en trozos pequeños.' : 'Corta la proteína en cubos pequeños adecuados al tamaño de hocico de tu perro.'}</li>
-              <li><strong>Vegetales:</strong> Lava muy bien ${r.veg1} y ${r.veg2}. ${r.type === 'cooked' ? 'Cocina al vapor hasta que estén tiernos.' : 'Pica finamente o tritura para mejor digestión.'}</li>
-              <li><strong>Energía / Base:</strong> ${r.type === 'cooked' ? `Cocina ${r.energy} por separado hasta que quede muy suave.` : 'Organiza en el plato limpio.'}</li>
-              <li><strong>Servir:</strong> Mezcla todos los ingredientes cocidos/preparados, deja templar si está caliente y sirve la porción adecuada.</li>
-            </ol>
-          </div>
-
-          <!-- Want to vary box -->
-          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-1">
-            <strong class="text-slate-800 font-bold"><i class="fa-solid fa-arrows-rotate text-amber-500"></i> ¿Quieres variar este menú?</strong>
-            <p class="text-slate-600">Puedes sustituir la proteína por <strong>${r.variation.prot}</strong>, los vegetales por <strong>${r.variation.v1}</strong> y <strong>${r.variation.v2}</strong>, y la energía por <strong>${r.variation.en}</strong>.</p>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('recipe-modal').classList.remove('hidden');
-    }
-
-    function closeRecipeModal() {
-      document.getElementById('recipe-modal').classList.add('hidden');
-    }
-
-    // -------------------------------------------------------------
-    // SEMAFORO RENDERER & FILTERS
-    // -------------------------------------------------------------
-    let currentSemaforoCat = 'all';
-
-    function renderSemaforo(items) {
-      const container = document.getElementById('semaforo-grid');
-
-      if (!items || items.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-200">
-            <p class="text-sm font-bold text-slate-700">No se encontraron alimentos en esta categoría.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = items.map(item => {
-        let badge, borderClass, bgClass;
-
-        if (item.category === 'verde') {
-          badge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase"><i class="fa-solid fa-circle text-[8px] mr-1"></i> PUEDE</span>`;
-          borderClass = "border-emerald-200/80";
-          bgClass = "bg-emerald-50/30";
-        } else if (item.category === 'amarillo') {
-          badge = `<span class="bg-yellow-100 text-yellow-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase"><i class="fa-solid fa-triangle-exclamation text-[8px] mr-1"></i> CUIDADO</span>`;
-          borderClass = "border-yellow-200/80";
-          bgClass = "bg-yellow-50/30";
-        } else {
-          badge = `<span class="bg-red-100 text-red-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase"><i class="fa-solid fa-ban text-[8px] mr-1"></i> NUNCA</span>`;
-          borderClass = "border-red-200/80";
-          bgClass = "bg-red-50/30";
-        }
-
-        return `
-          <div class="bg-white rounded-2xl border ${borderClass} ${bgClass} p-5 shadow-sm space-y-3 flex flex-col justify-between">
-            <div>
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-2xl">${item.icon}</span>
-                ${badge}
-              </div>
-              <h3 class="font-bold text-slate-900 text-base">${item.name}</h3>
-              <p class="text-xs text-slate-600 mt-1 leading-relaxed">${item.desc}</p>
-            </div>
-
-            <div class="bg-white/80 rounded-xl p-3 border border-slate-100 text-xs text-slate-700">
-              <strong class="font-bold block text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">Cómo preparar / Advertencia:</strong>
-              ${item.prep}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function filterSemaforo() {
-      const search = document.getElementById('semaforo-search').value.toLowerCase();
-
-      const filtered = SEMAFORO_DB.filter(item => {
-        const matchesCat = currentSemaforoCat === 'all' || item.category === currentSemaforoCat;
-        const matchesSearch = item.name.toLowerCase().includes(search) || item.desc.toLowerCase().includes(search);
-        return matchesCat && matchesSearch;
-      });
-
-      renderSemaforo(filtered);
-    }
-
-    function filterSemaforoCat(cat) {
-      currentSemaforoCat = cat;
-      document.querySelectorAll('.sem-filter-btn').forEach(b => {
-        b.classList.remove('bg-slate-900', 'text-white');
-        b.classList.add('bg-slate-100', 'text-slate-700');
-      });
-
-      const btnMap = {
-        'all': 'sem-btn-all',
-        'verde': 'sem-btn-verde',
-        'amarillo': 'sem-btn-amarillo',
-        'rojo': 'sem-btn-rojo'
+      const toggleDiaTransicion = (dia) => {
+        setDiasTransicion(prev => ({ ...prev, [dia]: !prev[dia] }));
       };
 
-      const activeBtn = document.getElementById(btnMap[cat]);
-      if (activeBtn) {
-        activeBtn.classList.remove('bg-slate-100', 'text-slate-700');
-        activeBtn.classList.add('bg-slate-900', 'text-white');
-      }
+      return (
+        <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+          
+          <!-- HEADER -->
+          <header class="bg-amber-500 text-white p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-3xl">🐾</span>
+                  <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">PetComilón</h1>
+                </div>
+                <p class="text-amber-100 text-sm mt-1">Calculadora de Porciones e Indicadores de Alimentación Perruna</p>
+              </div>
+              <div class="bg-amber-600/60 backdrop-blur-md px-4 py-2 rounded-xl text-xs text-amber-50 border border-amber-400/30">
+                Guía Oficial 100% Adaptable
+              </div>
+            </div>
 
-      filterSemaforo();
-    }
+            <!-- NAVEGACIÓN PRINCIPAL -->
+            <nav class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-amber-400/40">
+              <button 
+                onClick={() => setTab('calculadora')}
+                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'calculadora' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
+              >
+                🧮 Calculadora
+              </button>
+              <button 
+                onClick={() => setTab('recetario')}
+                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'recetario' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
+              >
+                🥗 Recetas Escaladas
+              </button>
+              <button 
+                onClick={() => setTab('semaforo')}
+                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'semaforo' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
+              >
+                🚦 Lista Semáforo
+              </button>
+              <button 
+                onClick={() => setTab('transicion')}
+                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'transicion' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
+              >
+                📅 Plan Transición
+              </button>
+            </nav>
+          </header>
 
-    // -------------------------------------------------------------
-    // NUTRIPET IA (GEMINI API CALLS)
-    // -------------------------------------------------------------
-    async function sendAiMessage() {
-      const inputEl = document.getElementById('ai-input');
-      const userText = inputEl.value.trim();
-      if (!userText) return;
+          <!-- CONTENIDO PRINCIPAL -->
+          <main class="p-4 sm:p-6 md:p-8">
 
-      inputEl.value = '';
-      appendChatMessage('user', userText);
+            {/* TAB 1: CALCULADORA */}
+            {tab === 'calculadora' && (
+              <div class="space-y-8 animate-fade-in">
+                
+                {/* INTRO */}
+                <div class="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 text-amber-900 text-sm flex gap-3 items-start">
+                  <span class="text-2xl">💡</span>
+                  <div>
+                    <strong class="font-bold">Calcula la cantidad diaria exacta:</strong> Ingresa el peso actual y características de tu perro para obtener su ración individualizada y el desglose gramo a gramo.
+                  </div>
+                </div>
 
-      // Show Loading indicator
-      const loadingId = appendChatLoading();
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  
+                  {/* FORMULARIO */}
+                  <div class="space-y-5 bg-slate-50 p-5 rounded-2xl border border-slate-200/80">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+                      🐶 Datos de tu Mascota
+                    </h3>
 
-      try {
-        const systemPrompt = `Eres NutriPet IA, un experto nutriólogo veterinario certificado basado estrictamente en el método y los libros de "Pet Comilón" (50 Recetas Cocidas, 50 Recetas Crudas, Guía de Transición y Lista Semáforo).
-Reglas de conducta:
-1. Responde de forma cercana, concisa, profesional y clara.
-2. NUNCA recomiendes cebolla, ajo, uvas, pasas, chocolate, xilitol ni HUESOS COCIDOS.
-3. Si el usuario pide un menú semanal, formátalo con viñetas claras incluyendo proteínas magras, vegetales cocidos y fuentes de energía.
-4. Datos actuales de la mascota del usuario: Nombre: ${currentDog.name}, Peso: ${currentDog.weight}kg, Dieta preferida: ${currentDog.diet}, Porción total: ${currentDog.dailyGrams}g/día.
-5. Si detectas síntomas graves como diarrea con sangre, vómito persistente o sospecha de tóxicos, advierte acudir al veterinario inmediatamente.`;
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nombre del Perro</label>
+                      <input 
+                        type="text" 
+                        value={nombre} 
+                        onChange={(e) => setNombre(e.target.value)}
+                        class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        placeholder="Ej. Firulais"
+                      />
+                    </div>
 
-        const apiKey = ""; // Canvas runtime automatically supplies the Gemini API key
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                    <div>
+                      <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Peso Corporal (KG)</label>
+                        <span class="text-amber-600 font-extrabold text-lg">{peso} kg</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="50" 
+                        step="0.5" 
+                        value={peso} 
+                        onChange={(e) => setPeso(parseFloat(e.target.value))}
+                        class="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 rounded-lg"
+                      />
+                      <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-semibold">
+                        <span>1 kg (Mini)</span>
+                        <span>15 kg (Mediano)</span>
+                        <span>30 kg (Grande)</span>
+                        <span>50 kg+</span>
+                      </div>
+                    </div>
 
-        const payload = {
-          contents: [{ parts: [{ text: userText }] }],
-          systemInstruction: { parts: [{ text: systemPrompt }] }
-        };
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Etapa de Vida</label>
+                        <select 
+                          value={etapa} 
+                          onChange={(e) => setEtapa(e.target.value)}
+                          class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        >
+                          <option value="cachorro">Cachorro (&lt; 1 año)</option>
+                          <option value="adulto">Adulto (1 - 7 años)</option>
+                          <option value="senior">Senior (&gt; 7 años)</option>
+                        </select>
+                      </div>
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+                      <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nivel Actividad</label>
+                        <select 
+                          value={actividad} 
+                          onChange={(e) => setActividad(e.target.value)}
+                          class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        >
+                          <option value="baja">Baja / Paseo corto</option>
+                          <option value="normal">Normal / Juego diario</option>
+                          <option value="alta">Alta / Deportivo</option>
+                        </select>
+                      </div>
+                    </div>
 
-        const data = await response.json();
-        removeChatLoading(loadingId);
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Objetivo Físico</label>
+                      <div class="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'bajar', label: 'Bajar Peso' },
+                          { id: 'mantener', label: 'Mantener' },
+                          { id: 'subir', label: 'Subir Peso' }
+                        ].map(item => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setObjetivo(item.id)}
+                            class={`py-2 text-xs font-bold rounded-xl border transition-all ${objetivo === item.id ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-          const aiReply = data.candidates[0].content.parts[0].text;
-          appendChatMessage('ai', aiReply);
-        } else {
-          appendChatMessage('ai', "Lo siento, tuve un inconveniente analizando tu solicitud. Inténtalo de nuevo.");
-        }
-      } catch (err) {
-        removeChatLoading(loadingId);
-        console.error(err);
-        appendChatMessage('ai', "Ocurrió un error al conectar con el servidor. Verifica tu conexión a internet.");
-      }
-    }
+                    <div>
+                      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Tipo de Dieta</label>
+                      <select 
+                        value={tipoDieta} 
+                        onChange={(e) => setTipoDieta(e.target.value)}
+                        class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                      >
+                        <option value="cocida">🍲 Dieta Cocida (Ideal Principiantes)</option>
+                        <option value="cruda_sin_hueso">🥩 Dieta Cruda Sin Hueso</option>
+                        <option value="cruda_con_hueso">🦴 Dieta Cruda Con Hueso Carnoso</option>
+                      </select>
+                    </div>
 
-    function sendQuickPrompt(promptText) {
-      document.getElementById('ai-input').value = promptText;
-      sendAiMessage();
-    }
+                  </div>
 
-    function appendChatMessage(sender, text) {
-      const container = document.getElementById('ai-messages');
-      const isUser = sender === 'user';
+                  {/* RESULTADOS CÁLCULO */}
+                  <div class="space-y-5 flex flex-col justify-between">
+                    
+                    <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                      <div class="absolute -right-4 -bottom-4 opacity-10 text-9xl font-extrabold select-none">🍖</div>
+                      <span class="text-amber-100 text-xs font-bold uppercase tracking-widest block mb-1">Ración Diaria Total</span>
+                      <div class="flex items-baseline gap-2">
+                        <span class="text-4xl sm:text-5xl font-black">{calculoNutricional.totalGramosDiarios}</span>
+                        <span class="text-xl font-bold text-amber-200">gramos / día</span>
+                      </div>
+                      <p class="text-amber-100 text-xs mt-2 border-t border-amber-400/40 pt-2">
+                        Equivale al <strong class="text-white font-extrabold">{calculoNutricional.porcentajePct}%</strong> del peso corporal de {nombre}.
+                      </p>
 
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `flex gap-3 items-start ${isUser ? 'justify-end' : 'max-w-2xl'}`;
+                      <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-amber-400/40 text-center">
+                        <div class="bg-amber-600/50 p-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
+                          <span class="block text-[10px] text-amber-200 uppercase font-bold">2 Tomas al día</span>
+                          <span class="text-lg font-bold">{calculoNutricional.porToma2}g <xs class="text-xs font-normal">/ plato</xs></span>
+                        </div>
+                        <div class="bg-amber-600/50 p-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
+                          <span class="block text-[10px] text-amber-200 uppercase font-bold">Etapa</span>
+                          <span class="text-sm font-bold capitalize">{etapa}</span>
+                        </div>
+                      </div>
+                    </div>
 
-      const formattedText = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    {/* DESGLOSE POR GRUPOS */}
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+                      <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-2">
+                        Desglose Gramo a Gramo ({tipoDieta.replace('_', ' ')})
+                      </h4>
 
-      if (isUser) {
-        msgDiv.innerHTML = `
-          <div class="bg-amber-600 text-white rounded-2xl p-4 text-xs leading-relaxed shadow-sm max-w-md">
-            ${formattedText}
-          </div>
-          <div class="w-8 h-8 bg-slate-800 text-white rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0">
-            TÚ
-          </div>
-        `;
-      } else {
-        msgDiv.innerHTML = `
-          <div class="w-8 h-8 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0">
-            AI
-          </div>
-          <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 text-xs text-slate-800 leading-relaxed shadow-sm">
-            ${formattedText}
-          </div>
-        `;
-      }
+                      {tipoDieta === 'cocida' && (
+                        <div class="space-y-2">
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Proteína (50%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales (25%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Energéticos / Carbohidratos (25%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.energiaGrams}g</span>
+                          </div>
+                        </div>
+                      )}
 
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-    }
+                      {tipoDieta === 'cruda_sin_hueso' && (
+                        <div class="space-y-2">
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Carne Magra / Proteína (65%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales y Frutas (25%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Vísceras (10%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.visceraGrams}g</span>
+                          </div>
+                        </div>
+                      )}
 
-    function appendChatLoading() {
-      const container = document.getElementById('ai-messages');
-      const id = 'loading-' + Date.now();
-      const loadDiv = document.createElement('div');
-      loadDiv.id = id;
-      loadDiv.className = "flex gap-3 items-start max-w-2xl";
-      loadDiv.innerHTML = `
-        <div class="w-8 h-8 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0">
-          AI
+                      {tipoDieta === 'cruda_con_hueso' && (
+                        <div class="space-y-2">
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Hueso Carnoso Crudo (45%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.huesoGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Carne Magra (35%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Vísceras (10%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.visceraGrams}g</span>
+                          </div>
+                          <div class="flex justify-between items-center text-sm">
+                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales (10%):</span>
+                            <span class="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span>
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+
+                    <button 
+                      onClick={() => setTab('recetario')}
+                      class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
+                    >
+                      <span>Ver Recetas Escaladas para {nombre}</span>
+                      <span>➔</span>
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
+            {/* TAB 2: RECETARIO ESCALADO */}
+            {tab === 'recetario' && (
+              <div class="space-y-6 animate-fade-in">
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center flex-wrap gap-3">
+                  <div>
+                    <h3 class="font-bold text-amber-900 text-base">Recetas Ajustadas Automáticamente</h3>
+                    <p class="text-amber-700 text-xs mt-0.5">Calculadas para {nombre} ({calculoNutricional.totalGramosDiarios}g diarios / {peso} kg)</p>
+                  </div>
+                  <button 
+                    onClick={() => setTab('calculadora')} 
+                    class="text-xs bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold py-1.5 px-3 rounded-lg transition-colors"
+                  >
+                    ✏️ Cambiar peso o dieta
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {RECETAS_BASE.map(receta => {
+                    const total = calculoNutricional.totalGramosDiarios;
+                    const gProt = Math.round((total * receta.partes.prot) / 100);
+                    const gVeg = Math.round((total * receta.partes.veg) / 100);
+                    const gEne = Math.round((total * receta.partes.ene) / 100);
+
+                    return (
+                      <div key={receta.id} class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                        <div>
+                          <div class="flex justify-between items-start gap-2 mb-2">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 uppercase tracking-wider">
+                              Receta #{receta.id}
+                            </span>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">
+                              {receta.tipoDieta.replace('_', ' ')}
+                            </span>
+                          </div>
+
+                          <h4 class="font-bold text-slate-900 text-base mb-3">{receta.titulo}</h4>
+
+                          <div class="bg-slate-50 rounded-xl p-3 space-y-2 mb-4 text-xs">
+                            <div class="flex justify-between">
+                              <span class="text-slate-600">🥩 {receta.proteina}:</span>
+                              <strong class="text-slate-900 font-bold">{gProt}g</strong>
+                            </div>
+                            <div class="flex justify-between">
+                              <span class="text-slate-600">🥦 {receta.vegetal}:</span>
+                              <strong class="text-slate-900 font-bold">{gVeg}g</strong>
+                            </div>
+                            {receta.partes.ene > 0 && (
+                              <div class="flex justify-between">
+                                <span class="text-slate-600">🥔 {receta.energia}:</span>
+                                <strong class="text-slate-900 font-bold">{gEne}g</strong>
+                              </div>
+                            )}
+                          </div>
+
+                          <p class="text-xs text-slate-500 leading-relaxed mb-4">
+                            <strong class="text-slate-700">Preparación:</strong> {receta.instrucciones}
+                          </p>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-3 text-[11px] text-slate-400 flex justify-between items-center">
+                          <span>Porción por plato (2 al día):</span>
+                          <strong class="text-amber-600 font-extrabold text-xs">{Math.round(total / 2)}g</strong>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: SEMÁFORO INTERACTIVO */}
+            {tab === 'semaforo' && (
+              <div class="space-y-6 animate-fade-in">
+                
+                {/* BUSCADOR Y FILTROS */}
+                <div class="space-y-3">
+                  <input 
+                    type="text"
+                    value={busquedaSemaforo}
+                    onChange={(e) => setBusquedaSemaforo(e.target.value)}
+                    placeholder="🔍 Buscar alimento (ej. Manzana, Cebolla, Brócoli...)"
+                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm"
+                  />
+
+                  <div class="flex gap-2 overflow-x-auto pb-1 text-xs">
+                    {[
+                      { id: 'todos', label: 'Todos' },
+                      { id: 'verde', label: '🟢 Puede (Seguros)' },
+                      { id: 'amarillo', label: '🟡 Cuidado (Moderación)' },
+                      { id: 'rojo', label: '🔴 NUNCA (Tóxicos)' }
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => setFiltroSemaforo(f.id)}
+                        class={`px-3 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${filtroSemaforo === f.id ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* LISTADO DE INGREDIENTES */}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {semaforoFiltrado.length > 0 ? (
+                    semaforoFiltrado.map((item, idx) => (
+                      <div 
+                        key={idx}
+                        class={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                          item.tipo === 'verde' ? 'bg-emerald-50/50 border-emerald-200 text-emerald-950' :
+                          item.tipo === 'amarillo' ? 'bg-amber-50/50 border-amber-200 text-amber-950' :
+                          'bg-rose-50/50 border-rose-200 text-rose-950'
+                        }`}
+                      >
+                        <div>
+                          <div class="flex justify-between items-start gap-2 mb-1">
+                            <h4 class="font-extrabold text-base flex items-center gap-2">
+                              <span>
+                                {item.tipo === 'verde' ? '🟢' : item.tipo === 'amarillo' ? '🟡' : '🔴'}
+                              </span>
+                              {item.nombre}
+                            </h4>
+                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-white/80 border border-current opacity-70">
+                              {item.categoria}
+                            </span>
+                          </div>
+                          <p class="text-xs mt-2 opacity-90 leading-relaxed">{item.desc}</p>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-current/10 text-[11px] opacity-80">
+                          <strong>Preparación / Regla:</strong> {item.prep}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div class="col-span-full text-center py-12 text-slate-400">
+                      No se encontraron alimentos que coincidan con la búsqueda.
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+
+            {/* TAB 4: PLAN DE TRANSICIÓN */}
+            {tab === 'transicion' && (
+              <div class="space-y-6 animate-fade-in">
+                
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-950 text-sm">
+                  <h3 class="font-bold text-base mb-1">📅 Protocolo de Transición Segura (7 Días)</h3>
+                  <p class="text-xs opacity-90">
+                    Cambiar bruscamente la comida de tu perro puede causar malestares estomacales. Sigue este calendario paso a paso y marca los días completados.
+                  </p>
+                </div>
+
+                <div class="space-y-3">
+                  {[
+                    { dia: 1, titulo: "Días 1 y 2: Introducción Mínima", habitual: "75%", natural: "25%", desc: "Observa la firmeza de las heces y la vitalidad." },
+                    { dia: 2, titulo: "Días 3 y 4: Mitad y Mitad", habitual: "50%", natural: "50%", desc: "Si hay heces muy blandas, mantén esta proporción 2 días extra." },
+                    { dia: 3, titulo: "Días 5 y 6: Fase Final", habitual: "25%", natural: "75%", desc: "Su microbiota intestinal ya se está adaptando adecuadamente." },
+                    { dia: 4, titulo: "Día 7 en adelante: 100% Comida Natural", habitual: "0%", natural: "100%", desc: "¡Felicidades! Tu perro disfruta de una nutrición completa de verdad." }
+                  ].map(step => (
+                    <div 
+                      key={step.dia}
+                      onClick={() => toggleDiaTransicion(step.dia)}
+                      class={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-4 ${
+                        diasTransicion[step.dia] 
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-sm' 
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'
+                      }`}
+                    >
+                      <div class="flex items-center gap-3">
+                        <div class={`w-6 h-6 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-colors ${
+                          diasTransicion[step.dia] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-transparent'
+                        }`}>
+                          ✓
+                        </div>
+                        <div>
+                          <h4 class="font-bold text-sm">{step.titulo}</h4>
+                          <p class="text-xs text-slate-500 mt-0.5">{step.desc}</p>
+                        </div>
+                      </div>
+
+                      <div class="text-right whitespace-nowrap">
+                        <span class="inline-block text-[10px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-700">
+                          {step.habitual} Habitual / {step.natural} Natural
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CONSEJOS DE CONGELADO Y CONSERVACIÓN */}
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                  <h4 class="font-bold text-slate-900 text-sm">❄️ Guía de Congelación y Almacenamiento</h4>
+                  <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
+                    <li>Divide las porciones en recipientes herméticos o bolsas etiquetadas con la fecha.</li>
+                    <li>Conserva en refrigerador hasta por 3 días o congela hasta por 2-3 meses.</li>
+                    <li>Descongela siempre en el refrigerador la noche anterior. Nunca a temperatura ambiente.</li>
+                    <li>Sirve a temperatura ambiente o tibia. Nunca muy caliente.</li>
+                  </ul>
+                </div>
+
+              </div>
+            )}
+
+          </main>
+
+          <!-- FOOTER -->
+          <footer class="bg-slate-50 border-t border-slate-200 p-4 text-center text-xs text-slate-400">
+            PetComilón © {new Date().getFullYear()} — Herramienta Educativa de Nutrición Canina
+          </footer>
+
         </div>
-        <div class="bg-slate-100 rounded-2xl p-4 text-xs text-slate-500 animate-pulse flex items-center gap-2">
-          <i class="fa-solid fa-circle-notch fa-spin text-amber-500"></i> NutriPet IA está pensando...
-        </div>
-      `;
-      container.appendChild(loadDiv);
-      container.scrollTop = container.scrollHeight;
-      return id;
+      );
     }
 
-    function removeChatLoading(id) {
-      const el = document.getElementById(id);
-      if (el) el.remove();
-    }
-
-    // -------------------------------------------------------------
-    // NAVIGATION & TAB SWITCHING
-    // -------------------------------------------------------------
-    function switchTab(tabId) {
-      const sections = ['calc', 'recipes', 'semaforo', 'guide', 'ai'];
-      sections.forEach(s => {
-        document.getElementById('sec-' + s).classList.add('hidden');
-        const btn = document.getElementById('tab-' + s);
-        if (btn) btn.classList.remove('tab-active');
-      });
+    // Renderizado seguro en React 18
+    const rootElement = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
+  </script>
+</body>
+</html>
