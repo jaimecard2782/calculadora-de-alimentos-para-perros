@@ -1,26 +1,22 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PetComilón - Calculadora de Porciones e Indicadores</title>
-  <!-- Tailwind CSS -->
+  <title>PetComilón - Calculadora de Porciones</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React & React DOM CDN -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <!-- Babel CDN para transpilar JSX en vivo -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased font-sans p-2 sm:p-4 md:p-6">
+<body className="bg-slate-50 text-slate-800 antialiased font-sans p-2 sm:p-4 md:p-6">
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // --- DATOS DEL SEMÁFORO DE ALIMENTOS ---
     const SEMAFORO_DATA = [
-      // Verde
       { nombre: 'Pollo cocido', categoria: 'Proteína', tipo: 'verde', desc: 'Proteína sencilla y versátil. Preparar sin sal, ajo ni cebolla.', prep: 'Retira la piel y huesos cocidos. Hervir o cocinar al vapor.' },
       { nombre: 'Carne magra de res', categoria: 'Proteína', tipo: 'verde', desc: 'Excelente fuente de proteína limpia e hierro.', prep: 'Cocinar en agua sin aceites ni condimentos.' },
       { nombre: 'Pescado blanco', categoria: 'Proteína', tipo: 'verde', desc: 'Fácil digestión y bajo en grasa. Aporta aminoácidos clave.', prep: 'Cocinar bien y desmenuzar revisando ausencia total de espinas.' },
@@ -33,15 +29,11 @@
       { nombre: 'Batata / Camote', categoria: 'Carbohidrato', tipo: 'verde', desc: 'Carbohidrato de asimilación lenta y fibra.', prep: 'Pelar y hervir muy bien antes de servir.' },
       { nombre: 'Sardina en agua', categoria: 'Complemento', tipo: 'verde', desc: 'Fuente rica en Omega-3 y grasas saludables.', prep: 'Sin sal ni aceites añadidos. Retirar espinas grandes.' },
       { nombre: 'Manzana sin semillas', categoria: 'Fruta / Premio', tipo: 'verde', desc: 'Premio crujiente y refrescante con fibra.', prep: 'Retirar siempre el corazón y TODAS las semillas.' },
-
-      // Amarillo (Cuidado / Moderación)
       { nombre: 'Hígado de res / Pollo', categoria: 'Víscera', tipo: 'amarillo', desc: 'Súper rico en vitamina A e hierro, pero el exceso causa toxicidad.', prep: 'Máximo 5% de la dieta. Cocinar brevemente.' },
       { nombre: 'Yogur natural sin azúcar', categoria: 'Lácteo / Probiótico', tipo: 'amarillo', desc: 'Aporta probióticos, pero la lactosa puede causar diarrea.', prep: 'Ofrecer solo 1 cucharada de forma ocasional si tolera lácteos.' },
       { nombre: 'Brócoli y Coliflor', categoria: 'Vegetal', tipo: 'amarillo', desc: 'Muy nutritivos, pero consumidos en exceso generan gases.', prep: 'Cocinar muy bien al vapor y dar en porciones pequeñas.' },
       { nombre: 'Crema de maní 100%', categoria: 'Premio', tipo: 'amarillo', desc: 'Muy calórica. Debe ser 100% maní sin azúcar ni edulcorantes.', prep: 'VERIFICAR que NO contenga Xilitol bajo ninguna circunstancia.' },
       { nombre: 'Queso bajo en sal', categoria: 'Lácteo', tipo: 'amarillo', desc: 'Útil para esconder medicamentos o premios esporádicos.', prep: 'Porciones minúsculas por su contenido graso.' },
-
-      // Rojo (Prohibido / NUNCA)
       { nombre: 'Cebolla y Ajo', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Destruyen los glóbulos rojos provocando anemia hemolítica severa.', prep: 'PROHIBIDO en cualquier forma (fresco, en polvo, caldos comerciales).' },
       { nombre: 'Chocolate y Café', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Contienen teobromina y cafeína. Afectan corazón y sistema nervioso.', prep: 'Peligro de muerte. Mantener lejos del alcance.' },
       { nombre: 'Uvas y Pasas', categoria: 'Tóxico directo', tipo: 'rojo', desc: 'Causan insuficiencia renal aguda e irreversible en dosis impredecibles.', prep: 'NUNCA ofrecer, ni siquiera una sola unidad.' },
@@ -50,7 +42,6 @@
       { nombre: 'Aguacate / Palta', categoria: 'Tóxico', tipo: 'rojo', desc: 'Contiene persina y alto nivel de grasa que puede desencadenar pancreatitis.', prep: 'Evitar hojas, pulpa y hueso.' }
     ];
 
-    // --- BASE DE RECETAS (MUESTRA DE LAS COLECCIONES) ---
     const RECETAS_BASE = [
       { id: 1, titulo: "Huevo con Pimiento Amarillo y Remolacha", tipoDieta: "cocida", proteina: "Huevo cocido", vegetal: "Pimiento amarillo y Remolacha", energia: "Arroz", partes: { prot: 40, veg: 30, ene: 30 }, instrucciones: "Cocinar los huevos hasta firmes. Hervir vegetales y arroz por separado sin sal. Mezclar al templar." },
       { id: 2, titulo: "Carne Molida con Brócoli y Pimiento", tipoDieta: "cocida", proteina: "Carne molida de res", vegetal: "Brócoli y Pimiento", energia: "Ñame / Batata", partes: { prot: 50, veg: 25, ene: 25 }, instrucciones: "Saltear la carne molida solo en agua. Cocinar vegetales al vapor y majar el ñame." },
@@ -62,22 +53,16 @@
     ];
 
     function App() {
-      // --- ESTADOS ---
       const [tab, setTab] = useState('calculadora');
-
-      // Formulario Mascota
       const [nombre, setNombre] = useState('Firulais');
       const [peso, setPeso] = useState(10.0);
-      const [etapa, setEtapa] = useState('adulto'); // cachorro, adulto, senior
-      const [actividad, setActividad] = useState('normal'); // baja, normal, alta
-      const [objetivo, setObjetivo] = useState('mantener'); // bajar, mantener, subir
-      const [tipoDieta, setTipoDieta] = useState('cocida'); // cocida, cruda_sin_hueso, cruda_con_hueso
-
-      // Filtros Semáforo
+      const [etapa, setEtapa] = useState('adulto'); 
+      const [actividad, setActividad] = useState('normal'); 
+      const [objetivo, setObjetivo] = useState('mantener'); 
+      const [tipoDieta, setTipoDieta] = useState('cocida'); 
       const [busquedaSemaforo, setBusquedaSemaforo] = useState('');
       const [filtroSemaforo, setFiltroSemaforo] = useState('todos');
 
-      // Estado Transición
       const [diasTransicion, setDiasTransicion] = useState(() => {
         const saved = localStorage.getItem('pet_transicion');
         return saved ? JSON.parse(saved) : { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
@@ -87,34 +72,23 @@
         localStorage.setItem('pet_transicion', JSON.stringify(diasTransicion));
       }, [diasTransicion]);
 
-      // --- LÓGICA DE CÁLCULO ---
       const calculoNutricional = useMemo(() => {
-        let porcentajeBase = 2.5; // Porcentaje del peso corporal por defecto para adulto
-
+        let porcentajeBase = 2.5; 
         if (etapa === 'cachorro') porcentajeBase = 6.0;
         else if (etapa === 'senior') porcentajeBase = 2.0;
 
-        // Ajuste por actividad
         if (actividad === 'baja') porcentajeBase -= 0.3;
         if (actividad === 'alta') porcentajeBase += 0.8;
-
-        // Ajuste por objetivo
         if (objetivo === 'bajar') porcentajeBase -= 0.4;
         if (objetivo === 'subir') porcentajeBase += 0.5;
 
-        // Limites razonables
         if (porcentajeBase < 1.5) porcentajeBase = 1.5;
         if (porcentajeBase > 10.0) porcentajeBase = 10.0;
 
         const totalGramosDiarios = Math.round((peso * 1000) * (porcentajeBase / 100));
         const porToma2 = Math.round(totalGramosDiarios / 2);
 
-        // Desglose de componentes según tipo de dieta
-        let proteinaGrams = 0;
-        let vegetalGrams = 0;
-        let energiaGrams = 0;
-        let visceraGrams = 0;
-        let huesoGrams = 0;
+        let proteinaGrams = 0, vegetalGrams = 0, energiaGrams = 0, visceraGrams = 0, huesoGrams = 0;
 
         if (tipoDieta === 'cocida') {
           proteinaGrams = Math.round(totalGramosDiarios * 0.50);
@@ -125,25 +99,15 @@
           vegetalGrams = Math.round(totalGramosDiarios * 0.25);
           visceraGrams = Math.round(totalGramosDiarios * 0.10);
         } else if (tipoDieta === 'cruda_con_hueso') {
-          huesoGrams = Math.round(totalGramosDiarios * 0.45); // Hueso carnoso crudo
-          proteinaGrams = Math.round(totalGramosDiarios * 0.35); // Carne magra
+          huesoGrams = Math.round(totalGramosDiarios * 0.45);
+          proteinaGrams = Math.round(totalGramosDiarios * 0.35);
           visceraGrams = Math.round(totalGramosDiarios * 0.10);
           vegetalGrams = Math.round(totalGramosDiarios * 0.10);
         }
 
-        return {
-          porcentajePct: porcentajeBase.toFixed(1),
-          totalGramosDiarios,
-          porToma2,
-          proteinaGrams,
-          vegetalGrams,
-          energiaGrams,
-          visceraGrams,
-          huesoGrams
-        };
+        return { porcentajePct: porcentajeBase.toFixed(1), totalGramosDiarios, porToma2, proteinaGrams, vegetalGrams, energiaGrams, visceraGrams, huesoGrams };
       }, [peso, etapa, actividad, objetivo, tipoDieta]);
 
-      // --- FILTRADO DE SEMÁFORO ---
       const semaforoFiltrado = useMemo(() => {
         return SEMAFORO_DATA.filter(item => {
           const coincideTexto = item.nombre.toLowerCase().includes(busquedaSemaforo.toLowerCase()) ||
@@ -159,116 +123,65 @@
       };
 
       return (
-        <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
           
-          <!-- HEADER -->
-          <header class="bg-amber-500 text-white p-6 sm:p-8">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <header className="bg-amber-500 text-white p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <div class="flex items-center gap-2">
-                  <span class="text-3xl">🐾</span>
-                  <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">PetComilón</h1>
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl">🐾</span>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">PetComilón</h1>
                 </div>
-                <p class="text-amber-100 text-sm mt-1">Calculadora de Porciones e Indicadores de Alimentación Perruna</p>
+                <p className="text-amber-100 text-sm mt-1">Calculadora de Porciones e Indicadores de Alimentación Perruna</p>
               </div>
-              <div class="bg-amber-600/60 backdrop-blur-md px-4 py-2 rounded-xl text-xs text-amber-50 border border-amber-400/30">
+              <div className="bg-amber-600/60 backdrop-blur-md px-4 py-2 rounded-xl text-xs text-amber-50 border border-amber-400/30">
                 Guía Oficial 100% Adaptable
               </div>
             </div>
 
-            <!-- NAVEGACIÓN PRINCIPAL -->
-            <nav class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-amber-400/40">
-              <button 
-                onClick={() => setTab('calculadora')}
-                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'calculadora' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
-              >
-                🧮 Calculadora
-              </button>
-              <button 
-                onClick={() => setTab('recetario')}
-                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'recetario' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
-              >
-                🥗 Recetas Escaladas
-              </button>
-              <button 
-                onClick={() => setTab('semaforo')}
-                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'semaforo' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
-              >
-                🚦 Lista Semáforo
-              </button>
-              <button 
-                onClick={() => setTab('transicion')}
-                class={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'transicion' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}
-              >
-                📅 Plan Transición
-              </button>
+            <nav className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-amber-400/40">
+              <button onClick={() => setTab('calculadora')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'calculadora' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}>🧮 Calculadora</button>
+              <button onClick={() => setTab('recetario')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'recetario' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}>🥗 Recetas Escaladas</button>
+              <button onClick={() => setTab('semaforo')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'semaforo' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}>🚦 Lista Semáforo</button>
+              <button onClick={() => setTab('transicion')} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 ${tab === 'transicion' ? 'bg-white text-amber-600 shadow-md' : 'bg-amber-600/40 text-white hover:bg-amber-600/70'}`}>📅 Plan Transición</button>
             </nav>
           </header>
 
-          <!-- CONTENIDO PRINCIPAL -->
-          <main class="p-4 sm:p-6 md:p-8">
+          <main className="p-4 sm:p-6 md:p-8">
 
-            {/* TAB 1: CALCULADORA */}
             {tab === 'calculadora' && (
-              <div class="space-y-8 animate-fade-in">
+              <div className="space-y-8 animate-fade-in">
                 
-                {/* INTRO */}
-                <div class="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 text-amber-900 text-sm flex gap-3 items-start">
-                  <span class="text-2xl">💡</span>
-                  <div>
-                    <strong class="font-bold">Calcula la cantidad diaria exacta:</strong> Ingresa el peso actual y características de tu perro para obtener su ración individualizada y el desglose gramo a gramo.
-                  </div>
+                <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 text-amber-900 text-sm flex gap-3 items-start">
+                  <span className="text-2xl">💡</span>
+                  <div><strong className="font-bold">Calcula la cantidad diaria exacta:</strong> Ingresa el peso actual y características de tu perro para obtener su ración individualizada y el desglose gramo a gramo.</div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   
-                  {/* FORMULARIO */}
-                  <div class="space-y-5 bg-slate-50 p-5 rounded-2xl border border-slate-200/80">
-                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
-                      🐶 Datos de tu Mascota
-                    </h3>
+                  <div className="space-y-5 bg-slate-50 p-5 rounded-2xl border border-slate-200/80">
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">🐶 Datos de tu Mascota</h3>
 
                     <div>
-                      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nombre del Perro</label>
-                      <input 
-                        type="text" 
-                        value={nombre} 
-                        onChange={(e) => setNombre(e.target.value)}
-                        class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                        placeholder="Ej. Firulais"
-                      />
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nombre del Perro</label>
+                      <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="Ej. Firulais" />
                     </div>
 
                     <div>
-                      <div class="flex justify-between items-center mb-1">
-                        <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Peso Corporal (KG)</label>
-                        <span class="text-amber-600 font-extrabold text-lg">{peso} kg</span>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Peso Corporal (KG)</label>
+                        <span className="text-amber-600 font-extrabold text-lg">{peso} kg</span>
                       </div>
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="50" 
-                        step="0.5" 
-                        value={peso} 
-                        onChange={(e) => setPeso(parseFloat(e.target.value))}
-                        class="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 rounded-lg"
-                      />
-                      <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-semibold">
-                        <span>1 kg (Mini)</span>
-                        <span>15 kg (Mediano)</span>
-                        <span>30 kg (Grande)</span>
-                        <span>50 kg+</span>
+                      <input type="range" min="1" max="50" step="0.5" value={peso} onChange={(e) => setPeso(parseFloat(e.target.value))} className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 rounded-lg" />
+                      <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-semibold">
+                        <span>1 kg (Mini)</span><span>15 kg (Mediano)</span><span>30 kg (Grande)</span><span>50 kg+</span>
                       </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Etapa de Vida</label>
-                        <select 
-                          value={etapa} 
-                          onChange={(e) => setEtapa(e.target.value)}
-                          class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                        >
+                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Etapa de Vida</label>
+                        <select value={etapa} onChange={(e) => setEtapa(e.target.value)} className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
                           <option value="cachorro">Cachorro (&lt; 1 año)</option>
                           <option value="adulto">Adulto (1 - 7 años)</option>
                           <option value="senior">Senior (&gt; 7 años)</option>
@@ -276,12 +189,8 @@
                       </div>
 
                       <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nivel Actividad</label>
-                        <select 
-                          value={actividad} 
-                          onChange={(e) => setActividad(e.target.value)}
-                          class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                        >
+                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Nivel Actividad</label>
+                        <select value={actividad} onChange={(e) => setActividad(e.target.value)} className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
                           <option value="baja">Baja / Paseo corto</option>
                           <option value="normal">Normal / Juego diario</option>
                           <option value="alta">Alta / Deportivo</option>
@@ -290,19 +199,14 @@
                     </div>
 
                     <div>
-                      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Objetivo Físico</label>
-                      <div class="grid grid-cols-3 gap-2">
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Objetivo Físico</label>
+                      <div className="grid grid-cols-3 gap-2">
                         {[
                           { id: 'bajar', label: 'Bajar Peso' },
                           { id: 'mantener', label: 'Mantener' },
                           { id: 'subir', label: 'Subir Peso' }
                         ].map(item => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => setObjetivo(item.id)}
-                            class={`py-2 text-xs font-bold rounded-xl border transition-all ${objetivo === item.id ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}`}
-                          >
+                          <button key={item.id} type="button" onClick={() => setObjetivo(item.id)} className={`py-2 text-xs font-bold rounded-xl border transition-all ${objetivo === item.id ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}`}>
                             {item.label}
                           </button>
                         ))}
@@ -310,12 +214,8 @@
                     </div>
 
                     <div>
-                      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Tipo de Dieta</label>
-                      <select 
-                        value={tipoDieta} 
-                        onChange={(e) => setTipoDieta(e.target.value)}
-                        class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                      >
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Tipo de Dieta</label>
+                      <select value={tipoDieta} onChange={(e) => setTipoDieta(e.target.value)} className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none">
                         <option value="cocida">🍲 Dieta Cocida (Ideal Principiantes)</option>
                         <option value="cruda_sin_hueso">🥩 Dieta Cruda Sin Hueso</option>
                         <option value="cruda_con_hueso">🦴 Dieta Cruda Con Hueso Carnoso</option>
@@ -324,127 +224,83 @@
 
                   </div>
 
-                  {/* RESULTADOS CÁLCULO */}
-                  <div class="space-y-5 flex flex-col justify-between">
+                  <div className="space-y-5 flex flex-col justify-between">
                     
-                    <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
-                      <div class="absolute -right-4 -bottom-4 opacity-10 text-9xl font-extrabold select-none">🍖</div>
-                      <span class="text-amber-100 text-xs font-bold uppercase tracking-widest block mb-1">Ración Diaria Total</span>
-                      <div class="flex items-baseline gap-2">
-                        <span class="text-4xl sm:text-5xl font-black">{calculoNutricional.totalGramosDiarios}</span>
-                        <span class="text-xl font-bold text-amber-200">gramos / día</span>
+                    <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                      <div className="absolute -right-4 -bottom-4 opacity-10 text-9xl font-extrabold select-none">🍖</div>
+                      <span className="text-amber-100 text-xs font-bold uppercase tracking-widest block mb-1">Ración Diaria Total</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl sm:text-5xl font-black">{calculoNutricional.totalGramosDiarios}</span>
+                        <span className="text-xl font-bold text-amber-200">gramos / día</span>
                       </div>
-                      <p class="text-amber-100 text-xs mt-2 border-t border-amber-400/40 pt-2">
-                        Equivale al <strong class="text-white font-extrabold">{calculoNutricional.porcentajePct}%</strong> del peso corporal de {nombre}.
+                      <p className="text-amber-100 text-xs mt-2 border-t border-amber-400/40 pt-2">
+                        Equivale al <strong className="text-white font-extrabold">{calculoNutricional.porcentajePct}%</strong> del peso corporal de {nombre}.
                       </p>
 
-                      <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-amber-400/40 text-center">
-                        <div class="bg-amber-600/50 p-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
-                          <span class="block text-[10px] text-amber-200 uppercase font-bold">2 Tomas al día</span>
-                          <span class="text-lg font-bold">{calculoNutricional.porToma2}g <xs class="text-xs font-normal">/ plato</xs></span>
+                      <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-amber-400/40 text-center">
+                        <div className="bg-amber-600/50 p-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
+                          <span className="block text-[10px] text-amber-200 uppercase font-bold">2 Tomas al día</span>
+                          <span className="text-lg font-bold">{calculoNutricional.porToma2}g <span className="text-xs font-normal">/ plato</span></span>
                         </div>
-                        <div class="bg-amber-600/50 p-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
-                          <span class="block text-[10px] text-amber-200 uppercase font-bold">Etapa</span>
-                          <span class="text-sm font-bold capitalize">{etapa}</span>
+                        <div className="bg-amber-600/50 p-2 rounded-xl backdrop-blur-sm border border-amber-400/20">
+                          <span className="block text-[10px] text-amber-200 uppercase font-bold">Etapa</span>
+                          <span className="text-sm font-bold capitalize">{etapa}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* DESGLOSE POR GRUPOS */}
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
-                      <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-2">
-                        Desglose Gramo a Gramo ({tipoDieta.replace('_', ' ')})
-                      </h4>
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-2">Desglose Gramo a Gramo ({tipoDieta.replace('_', ' ')})</h4>
 
                       {tipoDieta === 'cocida' && (
-                        <div class="space-y-2">
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Proteína (50%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales (25%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Energéticos / Carbohidratos (25%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.energiaGrams}g</span>
-                          </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Proteína (50%):</span><span className="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales (25%):</span><span className="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Carbohidratos (25%):</span><span className="font-bold text-slate-900">{calculoNutricional.energiaGrams}g</span></div>
                         </div>
                       )}
 
                       {tipoDieta === 'cruda_sin_hueso' && (
-                        <div class="space-y-2">
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Carne Magra / Proteína (65%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales y Frutas (25%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Vísceras (10%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.visceraGrams}g</span>
-                          </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Proteína (65%):</span><span className="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales y Frutas (25%):</span><span className="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Vísceras (10%):</span><span className="font-bold text-slate-900">{calculoNutricional.visceraGrams}g</span></div>
                         </div>
                       )}
 
                       {tipoDieta === 'cruda_con_hueso' && (
-                        <div class="space-y-2">
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Hueso Carnoso Crudo (45%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.huesoGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Carne Magra (35%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Vísceras (10%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.visceraGrams}g</span>
-                          </div>
-                          <div class="flex justify-between items-center text-sm">
-                            <span class="font-medium text-slate-700 flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales (10%):</span>
-                            <span class="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span>
-                          </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Hueso Crudo (45%):</span><span className="font-bold text-slate-900">{calculoNutricional.huesoGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Proteína (35%):</span><span className="font-bold text-slate-900">{calculoNutricional.proteinaGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Vísceras (10%):</span><span className="font-bold text-slate-900">{calculoNutricional.visceraGrams}g</span></div>
+                          <div className="flex justify-between items-center text-sm"><span className="font-medium text-slate-700 flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Vegetales (10%):</span><span className="font-bold text-slate-900">{calculoNutricional.vegetalGrams}g</span></div>
                         </div>
                       )}
 
                     </div>
 
-                    <button 
-                      onClick={() => setTab('recetario')}
-                      class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
-                    >
-                      <span>Ver Recetas Escaladas para {nombre}</span>
-                      <span>➔</span>
+                    <button onClick={() => setTab('recetario')} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm">
+                      <span>Ver Recetas Escaladas para {nombre}</span><span>➔</span>
                     </button>
 
                   </div>
-
                 </div>
-
               </div>
             )}
 
-            {/* TAB 2: RECETARIO ESCALADO */}
             {tab === 'recetario' && (
-              <div class="space-y-6 animate-fade-in">
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center flex-wrap gap-3">
+              <div className="space-y-6 animate-fade-in">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center flex-wrap gap-3">
                   <div>
-                    <h3 class="font-bold text-amber-900 text-base">Recetas Ajustadas Automáticamente</h3>
-                    <p class="text-amber-700 text-xs mt-0.5">Calculadas para {nombre} ({calculoNutricional.totalGramosDiarios}g diarios / {peso} kg)</p>
+                    <h3 className="font-bold text-amber-900 text-base">Recetas Ajustadas Automáticamente</h3>
+                    <p className="text-amber-700 text-xs mt-0.5">Calculadas para {nombre} ({calculoNutricional.totalGramosDiarios}g diarios / {peso} kg)</p>
                   </div>
-                  <button 
-                    onClick={() => setTab('calculadora')} 
-                    class="text-xs bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold py-1.5 px-3 rounded-lg transition-colors"
-                  >
+                  <button onClick={() => setTab('calculadora')} className="text-xs bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold py-1.5 px-3 rounded-lg transition-colors">
                     ✏️ Cambiar peso o dieta
                   </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {RECETAS_BASE.map(receta => {
                     const total = calculoNutricional.totalGramosDiarios;
                     const gProt = Math.round((total * receta.partes.prot) / 100);
@@ -452,44 +308,25 @@
                     const gEne = Math.round((total * receta.partes.ene) / 100);
 
                     return (
-                      <div key={receta.id} class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                      <div key={receta.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                         <div>
-                          <div class="flex justify-between items-start gap-2 mb-2">
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 uppercase tracking-wider">
-                              Receta #{receta.id}
-                            </span>
-                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">
-                              {receta.tipoDieta.replace('_', ' ')}
-                            </span>
+                          <div className="flex justify-between items-start gap-2 mb-2">
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 uppercase tracking-wider">Receta #{receta.id}</span>
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">{receta.tipoDieta.replace('_', ' ')}</span>
                           </div>
 
-                          <h4 class="font-bold text-slate-900 text-base mb-3">{receta.titulo}</h4>
+                          <h4 className="font-bold text-slate-900 text-base mb-3">{receta.titulo}</h4>
 
-                          <div class="bg-slate-50 rounded-xl p-3 space-y-2 mb-4 text-xs">
-                            <div class="flex justify-between">
-                              <span class="text-slate-600">🥩 {receta.proteina}:</span>
-                              <strong class="text-slate-900 font-bold">{gProt}g</strong>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-slate-600">🥦 {receta.vegetal}:</span>
-                              <strong class="text-slate-900 font-bold">{gVeg}g</strong>
-                            </div>
-                            {receta.partes.ene > 0 && (
-                              <div class="flex justify-between">
-                                <span class="text-slate-600">🥔 {receta.energia}:</span>
-                                <strong class="text-slate-900 font-bold">{gEne}g</strong>
-                              </div>
-                            )}
+                          <div className="bg-slate-50 rounded-xl p-3 space-y-2 mb-4 text-xs">
+                            <div className="flex justify-between"><span className="text-slate-600">🥩 {receta.proteina}:</span><strong className="text-slate-900 font-bold">{gProt}g</strong></div>
+                            <div className="flex justify-between"><span className="text-slate-600">🥦 {receta.vegetal}:</span><strong className="text-slate-900 font-bold">{gVeg}g</strong></div>
+                            {receta.partes.ene > 0 && <div className="flex justify-between"><span className="text-slate-600">🥔 {receta.energia}:</span><strong className="text-slate-900 font-bold">{gEne}g</strong></div>}
                           </div>
 
-                          <p class="text-xs text-slate-500 leading-relaxed mb-4">
-                            <strong class="text-slate-700">Preparación:</strong> {receta.instrucciones}
-                          </p>
+                          <p className="text-xs text-slate-500 leading-relaxed mb-4"><strong className="text-slate-700">Preparación:</strong> {receta.instrucciones}</p>
                         </div>
-
-                        <div class="border-t border-slate-100 pt-3 text-[11px] text-slate-400 flex justify-between items-center">
-                          <span>Porción por plato (2 al día):</span>
-                          <strong class="text-amber-600 font-extrabold text-xs">{Math.round(total / 2)}g</strong>
+                        <div className="border-t border-slate-100 pt-3 text-[11px] text-slate-400 flex justify-between items-center">
+                          <span>Porción por plato (2 al día):</span><strong className="text-amber-600 font-extrabold text-xs">{Math.round(total / 2)}g</strong>
                         </div>
                       </div>
                     );
@@ -498,146 +335,91 @@
               </div>
             )}
 
-            {/* TAB 3: SEMÁFORO INTERACTIVO */}
             {tab === 'semaforo' && (
-              <div class="space-y-6 animate-fade-in">
+              <div className="space-y-6 animate-fade-in">
                 
-                {/* BUSCADOR Y FILTROS */}
-                <div class="space-y-3">
-                  <input 
-                    type="text"
-                    value={busquedaSemaforo}
-                    onChange={(e) => setBusquedaSemaforo(e.target.value)}
-                    placeholder="🔍 Buscar alimento (ej. Manzana, Cebolla, Brócoli...)"
-                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm"
-                  />
-
-                  <div class="flex gap-2 overflow-x-auto pb-1 text-xs">
+                <div className="space-y-3">
+                  <input type="text" value={busquedaSemaforo} onChange={(e) => setBusquedaSemaforo(e.target.value)} placeholder="🔍 Buscar alimento (ej. Manzana, Cebolla, Brócoli...)" className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm" />
+                  <div className="flex gap-2 overflow-x-auto pb-1 text-xs">
                     {[
                       { id: 'todos', label: 'Todos' },
-                      { id: 'verde', label: '🟢 Puede (Seguros)' },
-                      { id: 'amarillo', label: '🟡 Cuidado (Moderación)' },
-                      { id: 'rojo', label: '🔴 NUNCA (Tóxicos)' }
+                      { id: 'verde', label: '🟢 Puede' },
+                      { id: 'amarillo', label: '🟡 Cuidado' },
+                      { id: 'rojo', label: '🔴 NUNCA' }
                     ].map(f => (
-                      <button
-                        key={f.id}
-                        onClick={() => setFiltroSemaforo(f.id)}
-                        class={`px-3 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${filtroSemaforo === f.id ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                      >
+                      <button key={f.id} onClick={() => setFiltroSemaforo(f.id)} className={`px-3 py-2 rounded-xl font-bold whitespace-nowrap transition-all ${filtroSemaforo === f.id ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                         {f.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* LISTADO DE INGREDIENTES */}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {semaforoFiltrado.length > 0 ? (
                     semaforoFiltrado.map((item, idx) => (
-                      <div 
-                        key={idx}
-                        class={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                          item.tipo === 'verde' ? 'bg-emerald-50/50 border-emerald-200 text-emerald-950' :
-                          item.tipo === 'amarillo' ? 'bg-amber-50/50 border-amber-200 text-amber-950' :
-                          'bg-rose-50/50 border-rose-200 text-rose-950'
-                        }`}
-                      >
+                      <div key={idx} className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${item.tipo === 'verde' ? 'bg-emerald-50/50 border-emerald-200 text-emerald-950' : item.tipo === 'amarillo' ? 'bg-amber-50/50 border-amber-200 text-amber-950' : 'bg-rose-50/50 border-rose-200 text-rose-950'}`}>
                         <div>
-                          <div class="flex justify-between items-start gap-2 mb-1">
-                            <h4 class="font-extrabold text-base flex items-center gap-2">
-                              <span>
-                                {item.tipo === 'verde' ? '🟢' : item.tipo === 'amarillo' ? '🟡' : '🔴'}
-                              </span>
-                              {item.nombre}
-                            </h4>
-                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-white/80 border border-current opacity-70">
-                              {item.categoria}
-                            </span>
+                          <div className="flex justify-between items-start gap-2 mb-1">
+                            <h4 className="font-extrabold text-base flex items-center gap-2"><span>{item.tipo === 'verde' ? '🟢' : item.tipo === 'amarillo' ? '🟡' : '🔴'}</span>{item.nombre}</h4>
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-white/80 border border-current opacity-70">{item.categoria}</span>
                           </div>
-                          <p class="text-xs mt-2 opacity-90 leading-relaxed">{item.desc}</p>
+                          <p className="text-xs mt-2 opacity-90 leading-relaxed">{item.desc}</p>
                         </div>
-
-                        <div class="mt-3 pt-2 border-t border-current/10 text-[11px] opacity-80">
-                          <strong>Preparación / Regla:</strong> {item.prep}
-                        </div>
+                        <div className="mt-3 pt-2 border-t border-current/10 text-[11px] opacity-80"><strong>Preparación / Regla:</strong> {item.prep}</div>
                       </div>
                     ))
                   ) : (
-                    <div class="col-span-full text-center py-12 text-slate-400">
-                      No se encontraron alimentos que coincidan con la búsqueda.
-                    </div>
+                    <div className="col-span-full text-center py-12 text-slate-400">No se encontraron alimentos que coincidan.</div>
                   )}
                 </div>
-
               </div>
             )}
 
-            {/* TAB 4: PLAN DE TRANSICIÓN */}
             {tab === 'transicion' && (
-              <div class="space-y-6 animate-fade-in">
+              <div className="space-y-6 animate-fade-in">
                 
-                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-950 text-sm">
-                  <h3 class="font-bold text-base mb-1">📅 Protocolo de Transición Segura (7 Días)</h3>
-                  <p class="text-xs opacity-90">
-                    Cambiar bruscamente la comida de tu perro puede causar malestares estomacales. Sigue este calendario paso a paso y marca los días completados.
-                  </p>
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-indigo-950 text-sm">
+                  <h3 className="font-bold text-base mb-1">📅 Protocolo de Transición Segura (7 Días)</h3>
+                  <p className="text-xs opacity-90">Sigue este calendario paso a paso y marca los días completados.</p>
                 </div>
 
-                <div class="space-y-3">
+                <div className="space-y-3">
                   {[
                     { dia: 1, titulo: "Días 1 y 2: Introducción Mínima", habitual: "75%", natural: "25%", desc: "Observa la firmeza de las heces y la vitalidad." },
                     { dia: 2, titulo: "Días 3 y 4: Mitad y Mitad", habitual: "50%", natural: "50%", desc: "Si hay heces muy blandas, mantén esta proporción 2 días extra." },
                     { dia: 3, titulo: "Días 5 y 6: Fase Final", habitual: "25%", natural: "75%", desc: "Su microbiota intestinal ya se está adaptando adecuadamente." },
                     { dia: 4, titulo: "Día 7 en adelante: 100% Comida Natural", habitual: "0%", natural: "100%", desc: "¡Felicidades! Tu perro disfruta de una nutrición completa de verdad." }
                   ].map(step => (
-                    <div 
-                      key={step.dia}
-                      onClick={() => toggleDiaTransicion(step.dia)}
-                      class={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-4 ${
-                        diasTransicion[step.dia] 
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-sm' 
-                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'
-                      }`}
-                    >
-                      <div class="flex items-center gap-3">
-                        <div class={`w-6 h-6 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-colors ${
-                          diasTransicion[step.dia] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-transparent'
-                        }`}>
-                          ✓
-                        </div>
+                    <div key={step.dia} onClick={() => toggleDiaTransicion(step.dia)} className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-4 ${diasTransicion[step.dia] ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-sm' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-colors ${diasTransicion[step.dia] ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-transparent'}`}>✓</div>
                         <div>
-                          <h4 class="font-bold text-sm">{step.titulo}</h4>
-                          <p class="text-xs text-slate-500 mt-0.5">{step.desc}</p>
+                          <h4 className="font-bold text-sm">{step.titulo}</h4>
+                          <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
                         </div>
                       </div>
-
-                      <div class="text-right whitespace-nowrap">
-                        <span class="inline-block text-[10px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-700">
-                          {step.habitual} Habitual / {step.natural} Natural
-                        </span>
+                      <div className="text-right whitespace-nowrap">
+                        <span className="inline-block text-[10px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-700">{step.habitual} Antiguo / {step.natural} Nuevo</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* CONSEJOS DE CONGELADO Y CONSERVACIÓN */}
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                  <h4 class="font-bold text-slate-900 text-sm">❄️ Guía de Congelación y Almacenamiento</h4>
-                  <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                  <h4 className="font-bold text-slate-900 text-sm">❄️ Guía de Congelación y Almacenamiento</h4>
+                  <ul className="text-xs text-slate-600 space-y-2 list-disc pl-4">
                     <li>Divide las porciones en recipientes herméticos o bolsas etiquetadas con la fecha.</li>
                     <li>Conserva en refrigerador hasta por 3 días o congela hasta por 2-3 meses.</li>
                     <li>Descongela siempre en el refrigerador la noche anterior. Nunca a temperatura ambiente.</li>
                     <li>Sirve a temperatura ambiente o tibia. Nunca muy caliente.</li>
                   </ul>
                 </div>
-
               </div>
             )}
 
           </main>
 
-          <!-- FOOTER -->
-          <footer class="bg-slate-50 border-t border-slate-200 p-4 text-center text-xs text-slate-400">
+          <footer className="bg-slate-50 border-t border-slate-200 p-4 text-center text-xs text-slate-400">
             PetComilón © {new Date().getFullYear()} — Herramienta Educativa de Nutrición Canina
           </footer>
 
@@ -645,7 +427,6 @@
       );
     }
 
-    // Renderizado seguro en React 18
     const rootElement = document.getElementById('root');
     const root = ReactDOM.createRoot(rootElement);
     root.render(<App />);
